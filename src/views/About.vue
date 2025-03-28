@@ -8,7 +8,7 @@
       <p class="intro-text">实用工具箱是一个集合多种实用在线工具的网站，旨在为开发者和日常办公提供便捷的工具支持。</p>
       
       <div class="section">
-        <h3><span class="section-icon">🛠️</span> 我们的工具</h3>
+        <h3><span class="section-icon">🛠️</span> 我的工具</h3>
         <ul class="tool-list">
           <li>
             <div class="tool-item">
@@ -50,13 +50,13 @@
       </div>
       
       <div class="section">
-        <h3><span class="section-icon">✉️</span> 联系我们</h3>
-        <p>如果您有任何问题、建议或合作意向，请通过以下方式联系我们：</p>
+        <h3><span class="section-icon">✉️</span> 联系我</h3>
+        <p>如果您有任何问题、建议或合作意向，请通过以下方式联系我：</p>
         <div class="contact-card">
           <div class="contact-icon">📧</div>
           <div class="contact-info">
             <strong>邮箱：</strong>
-            <span>contact@utilbox.example.com</span>
+            <span>qgao233@163.com</span>
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@
       <div class="section">
         <h3><span class="section-icon">🔒</span> 隐私声明</h3>
         <div class="privacy-box">
-          <p>我们所有的工具均在您的浏览器中本地运行，不会将您的数据传输到服务器。我们重视您的隐私和数据安全。</p>
+          <p>我所有的工具均在您的浏览器中本地运行，不会将您的数据传输到服务器。我重视您的隐私和数据安全。</p>
         </div>
       </div>
     </div>
@@ -82,13 +82,6 @@ export default {
   padding: 20px 0;
 }
 
-.about-content {
-  background-color: #fff;
-  border-radius: 16px;
-  padding: 40px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
 
 .header-section {
   text-align: center;
@@ -99,12 +92,13 @@ export default {
 h2 {
   font-size: 2.2rem;
   margin-bottom: 15px;
-  color: #2c3e50;
+  color: #623b5a;
   font-weight: 700;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #4b6cb7 0%, #1cb5e0 100%);
+  background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -114,7 +108,7 @@ h2 {
 .header-underline {
   width: 80px;
   height: 4px;
-  background: linear-gradient(90deg, #4b6cb7 0%, #1cb5e0 100%);
+  background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%);
   border-radius: 2px;
   margin: 0 auto;
 }
@@ -136,7 +130,7 @@ h2 {
 
 h3 {
   margin: 25px 0 20px;
-  color: #2c3e50;
+  color: #623b5a;
   font-size: 1.5rem;
   font-weight: 600;
   display: flex;
@@ -162,16 +156,17 @@ p {
 .tool-item {
   display: flex;
   margin-bottom: 20px;
-  background-color: #f8fafc;
+  background-color: rgba(255, 255, 255, 0.7);
   border-radius: 12px;
   padding: 20px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(161, 140, 209, 0.1);
+  box-shadow: 0 6px 15px rgba(161, 140, 209, 0.1);
 }
 
 .tool-item:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px rgba(161, 140, 209, 0.15);
 }
 
 .tool-icon {
@@ -215,7 +210,7 @@ p {
   font-weight: 600;
   font-size: 1.1rem;
   margin-bottom: 5px;
-  color: #2c3e50;
+  color: #623b5a;
 }
 
 .tool-details p {
@@ -226,19 +221,20 @@ p {
 .contact-card {
   display: flex;
   align-items: center;
-  background-color: #f8fafc;
+  background-color: rgba(255, 255, 255, 0.7);
   border-radius: 12px;
   padding: 20px;
   margin-top: 15px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(161, 140, 209, 0.1);
+  box-shadow: 0 6px 15px rgba(161, 140, 209, 0.1);
 }
 
 .contact-icon {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: rgba(75, 108, 183, 0.1);
-  color: #4b6cb7;
+  background-color: rgba(161, 140, 209, 0.1);
+  color: #a18cd1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -249,12 +245,12 @@ p {
 
 .contact-info strong {
   font-weight: 600;
-  color: #2c3e50;
+  color: #623b5a;
 }
 
 .privacy-box {
-  background: linear-gradient(135deg, rgba(75, 108, 183, 0.05) 0%, rgba(28, 181, 224, 0.05) 100%);
-  border: 1px solid rgba(75, 108, 183, 0.1);
+  background: linear-gradient(135deg, rgba(161, 140, 209, 0.05) 0%, rgba(251, 194, 235, 0.05) 100%);
+  border: 1px solid rgba(161, 140, 209, 0.1);
   border-radius: 12px;
   padding: 25px;
   margin-top: 15px;

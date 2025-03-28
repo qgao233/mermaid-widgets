@@ -78,13 +78,14 @@ export default {
 h2 {
   text-align: center;
   margin-bottom: 20px;
-  color: #2c3e50;
+  color: #623b5a;
   font-size: 2.5rem;
   font-weight: 700;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #4b6cb7 0%, #1cb5e0 100%);
+  background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -186,7 +187,7 @@ h2 {
   z-index: 1;
   border-radius: 50%;
   padding: 3px;
-  background: linear-gradient(135deg, #4b6cb7 0%, #1cb5e0 100%);
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: destination-out;
   mask-composite: exclude;

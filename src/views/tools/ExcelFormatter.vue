@@ -105,12 +105,13 @@ export default {
 h2 {
   text-align: center;
   margin-bottom: 30px;
-  color: #2c3e50;
+  color: #623b5a;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.8rem;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .tool-icon {
@@ -119,11 +120,12 @@ h2 {
 }
 
 .formatter-container {
-  background: #fff;
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
   padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px rgba(161, 140, 209, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
 }
 
 .form-group {
@@ -148,18 +150,19 @@ h2 {
   right: 0;
   top: 100%;
   margin-top: 8px;
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: #fde9f9;
+  color: #8e44ad;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 12px;
   font-size: 0.9rem;
-  font-weight: 500;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(251, 194, 235, 0.25);
   display: flex;
   align-items: center;
   z-index: 10;
   animation: fadeIn 0.3s ease;
   white-space: nowrap;
+  border: 1px solid rgba(251, 194, 235, 0.3);
 }
 
 .copy-icon {
@@ -174,8 +177,8 @@ h2 {
 
 label {
   display: block;
-  font-weight: 500;
-  color: #2c3e50;
+  font-weight: 600;
+  color: #623b5a;
   font-size: 1.05rem;
 }
 
@@ -183,8 +186,8 @@ label {
   width: 100%;
   min-height: 150px;
   padding: 15px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  border: 1px solid rgba(161, 140, 209, 0.2);
+  border-radius: 12px;
   font-family: 'Courier New', monospace;
   font-size: 14px;
   resize: vertical;
@@ -194,17 +197,17 @@ label {
 
 .input-area:focus {
   outline: none;
-  border-color: #4b6cb7;
-  box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.15);
+  border-color: #fbc2eb;
+  box-shadow: 0 0 0 3px rgba(251, 194, 235, 0.25);
 }
 
 .output-area {
   width: 100%;
   min-height: 150px;
   padding: 15px;
-  background-color: #f8fafc;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  background-color: #faf7fd;
+  border: 1px solid rgba(161, 140, 209, 0.2);
+  border-radius: 12px;
   font-family: 'Courier New', monospace;
   font-size: 14px;
   overflow: auto;
@@ -216,7 +219,7 @@ label {
   position: relative;
   margin-top: 35px;
   padding-top: 25px;
-  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+  border-top: 1px dashed rgba(161, 140, 209, 0.3);
 }
 
 .actions {
@@ -229,14 +232,15 @@ label {
 button {
   padding: 12px 25px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Quicksand', Arial, sans-serif;
 }
 
 .btn-icon {
@@ -245,37 +249,40 @@ button {
 }
 
 .format-btn {
-  background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+  background: linear-gradient(45deg, #a18cd1 0%, #fbc2eb 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(67, 160, 71, 0.3);
+  box-shadow: 0 4px 15px rgba(161, 140, 209, 0.3);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 .format-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(67, 160, 71, 0.4);
+  box-shadow: 0 6px 20px rgba(161, 140, 209, 0.4);
 }
 
 .clear-btn {
-  background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+  background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 154, 158, 0.3);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 .clear-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
+  box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4);
 }
 
 .copy-btn {
-  background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+  background: linear-gradient(45deg, #a6c1ee 0%, #fbc2eb 100%);
   color: white;
   padding: 8px 16px;
-  box-shadow: 0 4px 15px rgba(75, 108, 183, 0.3);
+  box-shadow: 0 4px 15px rgba(166, 193, 238, 0.3);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 .copy-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(75, 108, 183, 0.4);
+  box-shadow: 0 6px 20px rgba(166, 193, 238, 0.4);
 }
 
 @media (max-width: 768px) {
