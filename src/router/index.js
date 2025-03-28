@@ -1,6 +1,10 @@
-import { createRouter, createWebHistory,createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
 import Home from '../views/Home.vue'
-import Examples from '../views/Examples.vue'
+import About from '../views/About.vue'
+import ExcelFormatter from '../views/tools/ExcelFormatter.vue'
+import JsonFormatter from '../views/tools/JsonFormatter.vue'
+import TextDiff from '../views/tools/TextDiff.vue'
+import ColorPicker from '../views/tools/ColorPicker.vue'
 
 const routes = [
   {
@@ -9,9 +13,29 @@ const routes = [
     component: Home
   },
   {
-    path: '/examples',
-    name: 'Examples',
-    component: Examples
+    path: '/about',
+    name: 'About',
+    component: About
+  },
+  {
+    path: '/tools/excel-formatter',
+    name: 'ExcelFormatter',
+    component: ExcelFormatter
+  },
+  {
+    path: '/tools/json-formatter',
+    name: 'JsonFormatter',
+    component: JsonFormatter
+  },
+  {
+    path: '/tools/text-diff',
+    name: 'TextDiff',
+    component: TextDiff
+  },
+  {
+    path: '/tools/color-picker',
+    name: 'ColorPicker',
+    component: ColorPicker
   }
 ]
 
