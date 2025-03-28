@@ -104,6 +104,10 @@
             <span class="nav-icon">✂️</span>
             <span v-show="!sidebarCollapsed">自动抠图</span>
           </a>
+          <a href="https://www.pdfconvertonline.com/cn/pdf-to-jpg/" target="_blank" class="nav-link external-link">
+            <span class="nav-icon">🔄</span>
+            <span v-show="!sidebarCollapsed">PDF转JPG</span>
+          </a>
         </nav>
       </div>
       
