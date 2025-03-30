@@ -5,6 +5,7 @@ import ExcelFormatter from '../views/tools/ExcelFormatter.vue'
 import JsonFormatter from '../views/tools/JsonFormatter.vue'
 import TextDiff from '../views/tools/TextDiff.vue'
 import ColorPicker from '../views/tools/ColorPicker.vue'
+import VideoParser from '../views/tools/VideoParser.vue'
 
 const routes = [
   {
@@ -36,6 +37,11 @@ const routes = [
     path: '/tools/color-picker',
     name: 'ColorPicker',
     component: ColorPicker
+  },
+  {
+    path: '/tools/video-parser',
+    name: 'VideoParser',
+    component: VideoParser
   }
 ]
 

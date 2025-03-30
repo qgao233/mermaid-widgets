@@ -41,6 +41,15 @@
         <p>颜色选择、转换与生成配色方案</p>
         <div class="card-shine"></div>
       </div>
+      
+      <div class="tool-card" @click="goToTool('/tools/video-parser')">
+        <div class="card-icon-wrapper video-icon">
+          <div class="card-icon">🎬</div>
+        </div>
+        <h3>视频解析工具</h3>
+        <p>多线路解析各大平台视频，自动切换播放源</p>
+        <div class="card-shine"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -155,6 +164,10 @@ h2 {
   background: linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(230, 81, 0, 0.1) 100%);
 }
 
+.video-icon {
+  background: linear-gradient(135deg, rgba(233, 30, 99, 0.1) 0%, rgba(136, 14, 79, 0.1) 100%);
+}
+
 .card-icon {
   font-size: 2.5rem;
   position: relative;
@@ -175,6 +188,10 @@ h2 {
 
 .color-icon .card-icon {
   color: #ff9800;
+}
+
+.video-icon .card-icon {
+  color: #e91e63;
 }
 
 .card-icon-wrapper:before {

@@ -44,6 +44,10 @@
             <span class="nav-icon">🎨</span>
             <span v-show="!sidebarCollapsed">颜色选择器</span>
           </router-link>
+          <router-link to="/tools/video-parser" class="nav-link">
+            <span class="nav-icon">🎬</span>
+            <span v-show="!sidebarCollapsed">视频解析工具</span>
+          </router-link>
         </nav>
       </div>
       
