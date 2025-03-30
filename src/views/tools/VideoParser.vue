@@ -3,6 +3,7 @@
     <div class="header">
       <h1>视频解析工具</h1>
       <p class="description">输入视频链接，同时使用多个解析接口进行解析，找到最佳播放源</p>
+      <div class="disclaimer">仅供学习研究使用，请勿用于任何商业用途。请尊重版权，支持正版。</div>
     </div>
 
     <div class="input-container">
@@ -79,13 +80,20 @@
             v-for="(parser, index) in parserUrls" 
             :key="index"
             class="parser-list-item"
-            :class="{'current-parser': currentSuccessParser && currentSuccessParser.name === parser.name}"
+            :class="{
+              'current-parser': currentSuccessParser && currentSuccessParser.name === parser.name,
+              'failed-parser': failedParsers.includes(index),
+              'untested-parser': !successParsers.includes(index) && !failedParsers.includes(index) && !isLoading
+            }"
+            @click="manualSelectParser(parser, index)"
           >
             <span class="parser-list-name">{{ parser.name }}</span>
-            <span 
-              v-if="currentSuccessParser && currentSuccessParser.name === parser.name" 
-              class="current-tag"
-            >当前</span>
+            <span class="parser-status-tag">
+              <span v-if="currentSuccessParser && currentSuccessParser.name === parser.name" class="current-tag">当前</span>
+              <span v-else-if="failedParsers.includes(index)" class="failed-tag">失败</span>
+              <span v-else-if="!successParsers.includes(index) && !failedParsers.includes(index) && !isLoading" class="untested-tag">未测试</span>
+              <span v-else-if="successParsers.includes(index)" class="success-tag">成功</span>
+            </span>
           </div>
         </div>
       </div>
@@ -267,6 +275,28 @@ export default {
     
     toggleParserInfo() {
       this.showParserInfo = !this.showParserInfo;
+    },
+    
+    manualSelectParser(parser, index) {
+      if (this.isLoading || !this.videoUrl) return;
+      
+      // 如果已经是当前使用的解析器，不需要重新解析
+      if (this.currentSuccessParser && this.currentSuccessParser.name === parser.name) return;
+      
+      // 如果这个解析器已经被测试过且失败了，提示用户
+      if (this.failedParsers.includes(index)) {
+        if (confirm(`${parser.name} 解析接口之前解析失败，是否仍要尝试使用该接口？`)) {
+          this.useParser(parser);
+        }
+      } else {
+        this.useParser(parser);
+      }
+    },
+    
+    useParser(parser) {
+      this.finalVideoUrl = parser.url + this.videoUrl;
+      this.currentSuccessParser = parser;
+      this.errorMessage = '';
     }
   }
 }
@@ -521,7 +551,6 @@ input:focus {
   color: #2196f3;
 }
 
-
 .parser-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -542,6 +571,13 @@ input:focus {
   border-radius: 4px;
   border-left: 3px solid #ddd;
   font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.parser-list-item:hover {
+  background-color: #f5f5f5;
+  transform: translateX(2px);
 }
 
 .parser-list-name {
@@ -554,8 +590,49 @@ input:focus {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.failed-parser {
+  background-color: #ffebee;
+  border-left-color: #f44336;
+}
+
+.untested-parser {
+  background-color: #f5f5f5;
+  border-left-color: #9e9e9e;
+}
+
+.parser-status-tag {
+  display: flex;
+}
+
 .current-tag {
   background-color: #2196f3;
+  color: white;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.failed-tag {
+  background-color: #f44336;
+  color: white;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.untested-tag {
+  background-color: #9e9e9e;
+  color: white;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.success-tag {
+  background-color: #4caf50;
   color: white;
   padding: 2px 6px;
   font-size: 0.7rem;
@@ -611,6 +688,17 @@ input:focus {
   margin-bottom: 10px;
   color: #666;
   line-height: 1.5;
+}
+
+.disclaimer {
+  background-color: #fff8e1;
+  color: #ff8f00;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  text-align: center;
+  border-left: 3px solid #ffc107;
 }
 
 @media (max-width: 768px) {
