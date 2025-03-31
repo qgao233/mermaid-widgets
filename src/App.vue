@@ -112,6 +112,10 @@
             <span class="nav-icon">🔄</span>
             <span v-show="!sidebarCollapsed">PDF转JPG</span>
           </a>
+          <a href="https://www.xiwnn.com/piano/" target="_blank" class="nav-link external-link">
+            <span class="nav-icon">🎹</span>
+            <span v-show="!sidebarCollapsed">在线钢琴模拟器</span>
+          </a>
         </nav>
       </div>
       
