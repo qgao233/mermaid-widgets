@@ -233,13 +233,13 @@ export default {
     
     testParser(parser, index) {
       return new Promise((resolve, reject) => {
-        // 由于跨域限制和安全原因，我们不能直接测试接口是否可用
+        // 由于跨域限制和安全原因，我不能直接测试接口是否可用
         // 这里模拟测试，实际应用中需要通过后端服务来验证
         
         // 模拟测试解析接口是否可用
         setTimeout(() => {
           // 随机模拟成功或失败，实际应用中应该真正检测
-          // 这里我们假设 70% 的概率成功
+          // 这里我假设 70% 的概率成功
           const success = Math.random() > 0.7;
           
           if (success) {

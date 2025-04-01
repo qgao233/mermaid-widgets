@@ -1,122 +1,205 @@
 <template>
   <div class="app">
-    <div class="sidebar" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
-      <div class="logo">
-        <h1>实用工具箱</h1>
-        <div class="logo-underline"></div>
-      </div>
-      
-      <!-- 折叠按钮 -->
-      <div class="collapse-btn" @click="toggleSidebar">
-        <span class="collapse-icon">{{ sidebarCollapsed ? '→' : '←' }}</span>
-      </div>
-      
-      <!-- 首页导航 -->
-      <div class="menu-section">
-        <nav class="home-nav">
-          <router-link to="/" class="nav-link">
-            <span class="nav-icon">🏠</span>
-            <span v-show="!sidebarCollapsed">首页</span>
+    <header class="header">
+      <div class="container header-container">
+        <div class="logo">
+          <router-link to="/">
+            <span class="logo-icon">⚙️</span>
+            <span class="logo-text">工具集</span>
           </router-link>
-        </nav>
-      </div>
-      
-      <!-- 本站工具菜单 -->
-      <div class="menu-section">
-        <div class="menu-header" @click="toggleInternal">
-          <span class="menu-title" v-show="!sidebarCollapsed">本站工具</span>
-          <span class="menu-toggle" :class="{ 'menu-toggle-open': internalOpen }" v-show="!sidebarCollapsed">▼</span>
         </div>
-        <nav class="main-nav" v-show="internalOpen || sidebarCollapsed">
-          <router-link to="/tools/excel-formatter" class="nav-link">
-            <span class="nav-icon">📊</span>
-            <span v-show="!sidebarCollapsed">Excel公式格式化</span>
-          </router-link>
-          <router-link to="/tools/json-formatter" class="nav-link">
-            <span class="nav-icon">{}</span>
-            <span v-show="!sidebarCollapsed">JSON格式化</span>
-          </router-link>
-          <router-link to="/tools/text-diff" class="nav-link">
-            <span class="nav-icon">⟷</span>
-            <span v-show="!sidebarCollapsed">文本对比</span>
-          </router-link>
-          <router-link to="/tools/color-picker" class="nav-link">
-            <span class="nav-icon">🎨</span>
-            <span v-show="!sidebarCollapsed">颜色选择器</span>
-          </router-link>
-          <router-link to="/tools/video-parser" class="nav-link">
-            <span class="nav-icon">🎬</span>
-            <span v-show="!sidebarCollapsed">视频解析工具</span>
-          </router-link>
-        </nav>
-      </div>
-      
-      <!-- 其他页面 -->
-      <div class="menu-section">
-        <div class="menu-header" @click="toggleOther">
-          <span class="menu-title" v-show="!sidebarCollapsed">关于</span>
-          <span class="menu-toggle" :class="{ 'menu-toggle-open': otherOpen }" v-show="!sidebarCollapsed">▼</span>
-        </div>
-        <nav class="other-nav" v-show="otherOpen || sidebarCollapsed">
-          <router-link to="/about" class="nav-link">
-            <span class="nav-icon">ℹ️</span>
-            <span v-show="!sidebarCollapsed">关于本站</span>
-          </router-link>
-        </nav>
-      </div>
-      
-      <!-- 外链工具菜单 -->
-      <div class="menu-section">
-        <div class="menu-header" @click="toggleExternal">
-          <span class="menu-title" v-show="!sidebarCollapsed">外链工具</span>
-          <span class="menu-toggle" :class="{ 'menu-toggle-open': externalOpen }" v-show="!sidebarCollapsed">▼</span>
-        </div>
-        <nav class="external-nav" v-show="externalOpen || sidebarCollapsed">
-          <!-- 加载中状态 -->
-          <div v-if="loadingExternalTools" class="loading-state">
-            <div class="loading-spinner"></div>
-            <span v-show="!sidebarCollapsed">加载中...</span>
+        
+        <nav class="main-nav">
+          <router-link to="/" class="nav-item">首页</router-link>
+          
+          <div class="nav-item" @click="toggleDropdown('tools')">
+            <span>工具</span>
+            <span class="dropdown-icon" :class="{ 'dropdown-open': dropdowns.tools }">▾</span>
+            
+            <div class="dropdown-menu" v-show="dropdowns.tools">
+              <router-link to="/tools/excel-formatter" class="dropdown-item">
+                <span class="item-icon">📊</span>
+                <span>Excel格式化</span>
+              </router-link>
+              <router-link to="/tools/json-formatter" class="dropdown-item">
+                <span class="item-icon">{}</span>
+                <span>JSON格式化</span>
+              </router-link>
+              <router-link to="/tools/text-diff" class="dropdown-item">
+                <span class="item-icon">⟷</span>
+                <span>文本对比</span>
+              </router-link>
+              <router-link to="/tools/color-picker" class="dropdown-item">
+                <span class="item-icon">🎨</span>
+                <span>颜色选择器</span>
+              </router-link>
+              <router-link to="/tools/video-parser" class="dropdown-item">
+                <span class="item-icon">🎬</span>
+                <span>视频解析</span>
+              </router-link>
+            </div>
           </div>
           
-          <!-- 加载失败状态 -->
-          <div v-else-if="externalToolsError" class="error-state">
-            <span class="nav-icon">⚠️</span>
-            <span v-show="!sidebarCollapsed">{{ externalToolsError }}</span>
+          <div class="nav-item" @click="toggleDropdown('resources')">
+            <span>资源</span>
+            <span class="dropdown-icon" :class="{ 'dropdown-open': dropdowns.resources }">▾</span>
+            
+            <div class="dropdown-menu" v-show="dropdowns.resources">
+              <template v-if="loadingExternalTools">
+                <div class="dropdown-item disabled">
+                  <span>加载中...</span>
+                </div>
+              </template>
+              <template v-else-if="externalToolsError">
+                <div class="dropdown-item disabled">
+                  <span>{{ externalToolsError }}</span>
+                </div>
+              </template>
+              <template v-else-if="externalTools.length === 0">
+                <div class="dropdown-item disabled">
+                  <span>暂无外部资源</span>
+                </div>
+              </template>
+              <template v-else>
+                <a v-for="tool in externalTools" 
+                   :key="tool.id" 
+                   :href="tool.url" 
+                   target="_blank" 
+                   class="dropdown-item external">
+                  <span class="item-icon">{{ tool.icon }}</span>
+                  <span>{{ tool.name }}</span>
+                  <span class="external-indicator">↗</span>
+                </a>
+              </template>
+            </div>
           </div>
           
-          <!-- 数据为空状态 -->
-          <div v-else-if="externalTools.length === 0" class="empty-state">
-            <span class="nav-icon">📂</span>
-            <span v-show="!sidebarCollapsed">暂无外链工具</span>
-          </div>
-          
-          <!-- 数据加载成功状态 -->
-          <template v-else>
-            <a v-for="tool in externalTools" 
-               :key="tool.id" 
-               :href="tool.url" 
-               target="_blank" 
-               class="nav-link external-link">
-              <span class="nav-icon">{{ tool.icon }}</span>
-              <span v-show="!sidebarCollapsed">{{ tool.name }}</span>
-            </a>
-          </template>
+          <router-link to="/about" class="nav-item">关于</router-link>
         </nav>
+        
+        <button class="mobile-menu-toggle" @click="mobileMenuOpen = !mobileMenuOpen">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
-      
-      <div class="sidebar-footer" v-show="!sidebarCollapsed">
-        <p>© 2025 实用工具箱</p>
+    </header>
+    
+    <div class="mobile-menu" v-show="mobileMenuOpen">
+      <div class="container">
+        <router-link to="/" class="mobile-nav-item" @click="mobileMenuOpen = false">首页</router-link>
+        
+        <div class="mobile-dropdown">
+          <div class="mobile-nav-item" @click="toggleMobileDropdown('tools')">
+            <span>工具</span>
+            <span class="dropdown-icon" :class="{ 'dropdown-open': mobileDropdowns.tools }">▾</span>
+          </div>
+          <div class="mobile-dropdown-items" v-show="mobileDropdowns.tools">
+            <router-link to="/tools/excel-formatter" class="mobile-dropdown-item" @click="mobileMenuOpen = false">
+              <span class="item-icon">📊</span>
+              <span>Excel格式化</span>
+            </router-link>
+            <router-link to="/tools/json-formatter" class="mobile-dropdown-item" @click="mobileMenuOpen = false">
+              <span class="item-icon">{}</span>
+              <span>JSON格式化</span>
+            </router-link>
+            <router-link to="/tools/text-diff" class="mobile-dropdown-item" @click="mobileMenuOpen = false">
+              <span class="item-icon">⟷</span>
+              <span>文本对比</span>
+            </router-link>
+            <router-link to="/tools/color-picker" class="mobile-dropdown-item" @click="mobileMenuOpen = false">
+              <span class="item-icon">🎨</span>
+              <span>颜色选择器</span>
+            </router-link>
+            <router-link to="/tools/video-parser" class="mobile-dropdown-item" @click="mobileMenuOpen = false">
+              <span class="item-icon">🎬</span>
+              <span>视频解析</span>
+            </router-link>
+          </div>
+        </div>
+        
+        <div class="mobile-dropdown">
+          <div class="mobile-nav-item" @click="toggleMobileDropdown('resources')">
+            <span>资源</span>
+            <span class="dropdown-icon" :class="{ 'dropdown-open': mobileDropdowns.resources }">▾</span>
+          </div>
+          <div class="mobile-dropdown-items" v-show="mobileDropdowns.resources">
+            <template v-if="loadingExternalTools">
+              <div class="mobile-dropdown-item disabled">加载中...</div>
+            </template>
+            <template v-else-if="externalToolsError">
+              <div class="mobile-dropdown-item disabled">{{ externalToolsError }}</div>
+            </template>
+            <template v-else-if="externalTools.length === 0">
+              <div class="mobile-dropdown-item disabled">暂无外部资源</div>
+            </template>
+            <template v-else>
+              <a v-for="tool in externalTools" 
+                 :key="tool.id" 
+                 :href="tool.url" 
+                 target="_blank" 
+                 class="mobile-dropdown-item external" 
+                 @click="mobileMenuOpen = false">
+                <span class="item-icon">{{ tool.icon }}</span>
+                <span>{{ tool.name }}</span>
+                <span class="external-indicator">↗</span>
+              </a>
+            </template>
+          </div>
+        </div>
+        
+        <router-link to="/about" class="mobile-nav-item" @click="mobileMenuOpen = false">关于</router-link>
       </div>
     </div>
-    <div class="content" :class="{ 'content-expanded': sidebarCollapsed }">
-      <main>
+    
+    <main class="main-content">
+      <div class="container">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
           </transition>
         </router-view>
-      </main>
-    </div>
+      </div>
+    </main>
+    
+    <footer class="footer">
+      <div class="footer-background"></div>
+      <div class="footer-wrapper">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>工具集</h3>
+            <p>为开发者和日常办公提供便捷实用的在线工具</p>
+            <div class="social-icons">
+              <a href="#" class="social-icon">📱</a>
+              <a href="#" class="social-icon">📧</a>
+              <a href="#" class="social-icon">🔗</a>
+            </div>
+          </div>
+          
+          <div class="footer-section">
+            <h3>热门工具</h3>
+            <ul class="footer-links">
+              <li><router-link to="/tools/json-formatter">JSON格式化</router-link></li>
+              <li><router-link to="/tools/excel-formatter">Excel格式化</router-link></li>
+              <li><router-link to="/tools/text-diff">文本对比</router-link></li>
+              <li><router-link to="/tools/color-picker">颜色选择器</router-link></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h3>关于我</h3>
+            <ul class="footer-links">
+              <li><router-link to="/about">关于我</router-link></li>
+              <li><a href="mailto:qgao233@163.com">联系我</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>© 2025 工具集 | 所有工具均在浏览器本地运行，保障数据安全</p>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -127,45 +210,49 @@ export default {
   name: 'App',
   data() {
     return {
-      internalOpen: true, // 默认展开
-      externalOpen: true, // 默认展开
-      otherOpen: true,    // 默认展开
-      sidebarCollapsed: false, // 侧边栏折叠状态
-      externalTools: [], // 外链工具列表
-      loadingExternalTools: false, // 加载状态
-      externalToolsError: null // 错误信息
+      dropdowns: {
+        tools: false,
+        resources: false
+      },
+      mobileDropdowns: {
+        tools: false,
+        resources: false
+      },
+      mobileMenuOpen: false,
+      externalTools: [],
+      loadingExternalTools: false,
+      externalToolsError: null
     };
   },
-  async created() {
-    // 组件创建时加载外链工具数据
-    await this.fetchExternalTools();
+  created() {
+    this.fetchExternalTools();
+    document.addEventListener('click', this.closeDropdowns);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.closeDropdowns);
   },
   methods: {
-    toggleInternal() {
-      if (!this.sidebarCollapsed) {
-        this.internalOpen = !this.internalOpen;
-      }
+    toggleDropdown(name) {
+      // 防止事件冒泡导致立即被closeDropdowns关闭
+      event.stopPropagation();
+      
+      // 先关闭所有下拉菜单
+      Object.keys(this.dropdowns).forEach(key => {
+        if (key !== name) this.dropdowns[key] = false;
+      });
+      
+      // 切换当前下拉菜单
+      this.dropdowns[name] = !this.dropdowns[name];
     },
-    toggleExternal() {
-      if (!this.sidebarCollapsed) {
-        this.externalOpen = !this.externalOpen;
-      }
+    toggleMobileDropdown(name) {
+      this.mobileDropdowns[name] = !this.mobileDropdowns[name];
     },
-    toggleOther() {
-      if (!this.sidebarCollapsed) {
-        this.otherOpen = !this.otherOpen;
-      }
-    },
-    toggleSidebar() {
-      this.sidebarCollapsed = !this.sidebarCollapsed;
-      // 当展开时，恢复原有的菜单状态
-      if (!this.sidebarCollapsed) {
-        // 延迟执行，确保过渡效果流畅
-        setTimeout(() => {
-          this.internalOpen = true;
-          this.externalOpen = true;
-          this.otherOpen = true;
-        }, 200);
+    closeDropdowns(event) {
+      // 当点击在下拉菜单外部时关闭所有下拉菜单
+      if (!event.target.closest('.nav-item')) {
+        Object.keys(this.dropdowns).forEach(key => {
+          this.dropdowns[key] = false;
+        });
       }
     },
     async fetchExternalTools() {
@@ -175,7 +262,7 @@ export default {
         this.externalTools = await getExternalTools();
       } catch (error) {
         console.error('获取外链工具失败:', error);
-        this.externalToolsError = '加载失败，请刷新重试';
+        this.externalToolsError = '加载失败';
       } finally {
         this.loadingExternalTools = false;
       }
@@ -185,7 +272,7 @@ export default {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 * {
   margin: 0;
@@ -194,280 +281,18 @@ export default {
 }
 
 body {
-  font-family: 'Quicksand', Arial, sans-serif;
+  font-family: 'Inter', sans-serif;
   line-height: 1.6;
-  background-color: #faf7fd;
-  height: 100vh;
-  color: #444;
+  background-color: #f9f9f9;
+  color: #333;
+  min-height: 100vh;
 }
 
 .app {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
-}
 
-.sidebar {
-  width: 280px;
-  background: linear-gradient(145deg, #ffecd2 0%, #fcb69f 100%);
-  color: #623b5a;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  height: 100vh;
-  box-shadow: 0 0 20px rgba(252, 182, 159, 0.3);
-  z-index: 10;
-  overflow-y: auto;
-  border-right: 4px solid rgba(255, 255, 255, 0.25);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(251, 194, 235, 0.5) rgba(255, 255, 255, 0.1);
-  transition: width 0.3s ease;
-}
-
-/* 滚动条样式 - Webkit浏览器 */
-.sidebar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-  margin: 8px 0;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #fbc2eb 0%, #a6c1ee 100%);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #a18cd1 0%, #fbc2eb 100%);
-  background-clip: content-box;
-}
-
-.sidebar-collapsed {
-  width: 60px;
-  overflow-x: hidden;
-}
-
-.sidebar-collapsed .logo h1 {
-  display: none;
-}
-
-.sidebar-collapsed .logo-underline {
-  width: 30px;
-}
-
-.collapse-btn {
-  position: absolute;
-  top: 20px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 20;
-}
-
-.collapse-btn:hover {
-  background: rgba(255, 255, 255, 0.6);
-  transform: scale(1.1);
-}
-
-.collapse-icon {
-  font-size: 14px;
-  color: #623b5a;
-}
-
-.sidebar-collapsed .menu-header {
-  padding: 10px 0;
-  justify-content: center;
-  margin: 0;
-}
-
-.sidebar-collapsed .nav-link {
-  padding: 10px 0;
-  justify-content: center;
-  margin: 3px 0;
-}
-
-.sidebar-collapsed .menu-section {
-  align-items: center;
-}
-
-.sidebar-collapsed .external-link::after {
-  display: none;
-}
-
-.logo {
-  padding: 25px 15px 20px;
-  text-align: center;
-  position: relative;
-}
-
-.logo h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #623b5a;
-  letter-spacing: 0.5px;
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-.logo-underline {
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%);
-  border-radius: 10px;
-  margin: 10px auto 0;
-  box-shadow: 0 2px 4px rgba(161, 140, 209, 0.2);
-}
-
-.menu-section {
-  margin-bottom: 15px;
-}
-
-.menu-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  background: linear-gradient(90deg, rgba(255, 236, 210, 0.6) 0%, rgba(255, 227, 206, 0.6) 100%);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 12px;
-  margin: 0 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.menu-header:hover {
-  background: linear-gradient(90deg, rgba(251, 194, 235, 0.4) 0%, rgba(166, 193, 238, 0.4) 100%);
-}
-
-.menu-title {
-  font-weight: 700;
-  font-size: 1rem;
-  color: #623b5a;
-}
-
-.menu-toggle {
-  font-size: 0.8rem;
-  transition: transform 0.3s ease;
-  color: #623b5a;
-}
-
-.menu-toggle-open {
-  transform: rotate(180deg);
-}
-
-.home-nav {
-  display: flex;
-  flex-direction: column;
-  padding: 5px 0;
-}
-
-.main-nav, .external-nav, .other-nav {
-  display: flex;
-  flex-direction: column;
-  padding: 5px 0;
-}
-
-.nav-link {
-  color: #623b5a;
-  text-decoration: none;
-  font-weight: 600;
-  padding: 10px 15px;
-  margin: 3px 8px;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  font-size: 0.9rem;
-  background-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.external-link {
-  position: relative;
-}
-
-.external-link::after {
-  content: "↗";
-  position: absolute;
-  right: 10px;
-  font-size: 0.9rem;
-  opacity: 0.7;
-}
-
-.nav-icon {
-  margin-right: 8px;
-  font-size: 1.1rem;
-  width: 20px;
-  display: inline-block;
-  text-align: center;
-}
-
-.nav-link:hover {
-  background: linear-gradient(45deg, rgba(251, 194, 235, 0.4) 0%, rgba(166, 193, 238, 0.4) 100%);
-  color: #5c3553;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
-}
-
-.router-link-active {
-  background: linear-gradient(45deg, #fbc2eb 0%, #a6c1ee 100%);
-  color: #fff;
-  box-shadow: 0 4px 15px rgba(166, 193, 238, 0.3);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-  border: none;
-}
-
-/* 加载状态样式 */
-.loading-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-  color: #623b5a;
-  font-weight: 500;
-}
-
-.loading-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(251, 194, 235, 0.3);
-  border-radius: 50%;
-  border-top-color: #fbc2eb;
-  animation: spin 1s ease-in-out infinite;
-  margin-right: 8px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* 错误状态样式 */
-.error-state, .empty-state {
-  display: flex;
-  align-items: center;
-  padding: 10px 15px;
-  margin: 3px 8px;
-  background-color: rgba(255, 255, 255, 0.25);
-  border-radius: 12px;
-  color: #623b5a;
-  font-weight: 500;
-}
-
-.content {
-  flex: 1;
-  margin-left: 280px;
-  padding: 30px;
   background: #faf7fd;
   background-image: 
     radial-gradient(#fbc2eb 1px, transparent 1px),
@@ -475,154 +300,355 @@ body {
   background-size: 40px 40px;
   background-position: 0 0, 20px 20px;
   background-attachment: fixed;
-  transition: margin-left 0.3s ease;
 }
 
-.content-expanded {
-  margin-left: 60px;
-}
-
-main {
-  max-width: 1200px;
+.container {
+  width: 100%;
   margin: 0 auto;
 }
 
-.sidebar-footer {
-  padding: 15px;
-  font-size: 0.8rem;
-  text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  color: #623b5a;
-  margin-top: auto;
-  font-weight: 500;
+/* 顶部导航 */
+.header {
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
 }
 
-/* 页面切换动画 */
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+  max-width: 1200px;
+}
+
+.logo a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+  margin-right: 8px;
+}
+
+.logo-text {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #333;
+  background: linear-gradient(135deg, #3a6df0, #8a54ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+}
+
+.nav-item {
+  position: relative;
+  margin-left: 30px;
+  padding: 8px 12px;
+  color: #555;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.nav-item:hover {
+  color: #3a6df0;
+}
+
+.dropdown-icon {
+  font-size: 0.7rem;
+  margin-left: 4px;
+  transition: transform 0.2s;
+}
+
+.dropdown-open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+  z-index: 10;
+  overflow: hidden;
+  transform-origin: top;
+  animation: dropdown 0.2s ease;
+}
+
+@keyframes dropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  color: #555;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+  color: #3a6df0;
+}
+
+.dropdown-item.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.item-icon {
+  margin-right: 10px;
+  font-size: 1.1rem;
+  min-width: 20px;
+  text-align: center;
+}
+
+.external-indicator {
+  font-size: 0.7rem;
+  margin-left: 5px;
+  opacity: 0.6;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.mobile-menu-toggle span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: #333;
+  transition: transform 0.2s;
+}
+
+/* 移动菜单 */
+.mobile-menu {
+  display: none;
+  background-color: #fff;
+  padding: 20px 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-nav-item {
+  display: block;
+  padding: 12px 0;
+  color: #333;
+  text-decoration: none;
+  font-size: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mobile-dropdown {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mobile-dropdown-items {
+  padding-left: 16px;
+}
+
+.mobile-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  color: #555;
+  text-decoration: none;
+}
+
+.mobile-dropdown-item.disabled {
+  opacity: 0.6;
+}
+
+/* 主内容区 */
+.main-content {
+  flex: 1;
+  padding-bottom: 0;
+}
+
+/* 页脚 */
+.footer {
+  position: relative;
+  background-color: #222;
+  padding: 60px 0 20px;
+  margin-top: 60px;
+  color: #fff;
+  overflow: hidden;
+}
+
+.footer-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://images.unsplash.com/photo-1516116216624-53e697fedbea?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.footer-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.footer-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 20px;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.footer-section h3:after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 40px;
+  background: linear-gradient(90deg, #3a6df0, #8a54ff);
+}
+
+.footer-section p {
+  color: #aaa;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.social-icons {
+  display: flex;
+  gap: 12px;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  font-size: 1.1rem;
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.social-icon:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.footer-links {
+  list-style: none;
+}
+
+.footer-links li {
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  color: #aaa;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: #3a6df0;
+}
+
+.footer-bottom {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.8rem;
+  color: #777;
+}
+
+/* 过渡动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(10px);
 }
 
-/* 全局按钮样式 */
-button {
-  background: linear-gradient(45deg, #fbc2eb 0%, #a6c1ee 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-family: 'Quicksand', Arial, sans-serif;
-  font-weight: 600;
-  box-shadow: 0 4px 15px rgba(166, 193, 238, 0.3);
-  transition: all 0.3s ease;
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(166, 193, 238, 0.4);
-}
-
-input, textarea, select {
-  font-family: 'Quicksand', Arial, sans-serif;
-  border-radius: 10px;
-  border: 1px solid rgba(161, 140, 209, 0.2);
-  transition: all 0.3s ease;
-}
-
-input:focus, textarea:focus, select:focus {
-  border-color: #fbc2eb;
-  box-shadow: 0 0 0 3px rgba(251, 194, 235, 0.25);
-  outline: none;
-}
-
-/* 全局滚动条样式 */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(250, 247, 253, 0.5);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, rgba(251, 194, 235, 0.7) 0%, rgba(166, 193, 238, 0.7) 100%);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, rgba(251, 194, 235, 0.9) 0%, rgba(166, 193, 238, 0.9) 100%);
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
+/* 响应式设计 */
 @media (max-width: 768px) {
-  .app {
-    flex-direction: column;
-  }
-  
-  .sidebar, .sidebar-collapsed {
-    width: 100%;
-    height: auto;
-    position: relative;
-    overflow-y: visible;
-    border-right: none;
-    border-bottom: 4px solid rgba(255, 255, 255, 0.25);
-  }
-  
-  .collapse-btn {
-    top: 25px;
-    right: 20px;
-  }
-  
-  .content, .content-expanded {
-    margin-left: 0;
-    padding: 20px;
-  }
-  
-  main {
-    padding: 20px;
-  }
-  
-  .home-nav, .main-nav, .external-nav, .other-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 5px;
-  }
-  
-  .nav-link {
-    padding: 8px 12px;
-    margin: 3px;
-    display: inline-block;
-    font-size: 0.85rem;
-  }
-  
-  .nav-link:hover {
-    transform: translateY(-2px);
-  }
-  
-  .logo-underline {
-    width: 60px;
-  }
-  
-  .external-link::after {
+  .main-nav {
     display: none;
   }
   
-  .menu-header {
-    border-radius: 8px;
-    margin: 0 5px;
+  .mobile-menu-toggle {
+    display: flex;
+  }
+  
+  .mobile-menu {
+    display: block;
+  }
+  
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
   }
 }
 </style> 

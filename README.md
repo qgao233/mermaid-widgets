@@ -1,66 +1,97 @@
-# 实用工具箱 🛠️
+# 在线工具集网站
 
-![Vue](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=flat-square&logo=vue.js)
-![Vite](https://img.shields.io/badge/Vite-latest-646CFF?style=flat-square&logo=vite)
-![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
+这是一个提供多种实用工具的在线工具集合网站，采用现代设计风格和用户友好的界面。该项目使用Vue 3框架构建，具有响应式设计，适配各种设备。
 
-一个多功能的实用工具集成平台，基于Vue 3和Vite构建。提供Excel公式格式化、JSON格式化、文本差异对比、颜色选择器等实用工具，帮助开发者和日常办公提高工作效率。
+## 项目亮点
 
-## ✨ 功能特点
+### 整体设计
 
-- 🔄 **Excel公式格式化** - 使复杂的Excel公式更易读易懂
-- { } **JSON格式化工具** - 美化、压缩和校验JSON数据
-- ⟷ **文本对比工具** - 快速比较两段文本的差异
-- 🎨 **颜色选择器** - 颜色选择、转换与生成配色方案
-- 🎬 **视频解析工具** - 多接口视频解析，仅供学习研究使用
+- **现代门户网站风格**：采用顶部导航栏布局，符合当代网站设计趋势
+- **响应式设计**：完美适配桌面、平板和移动设备
+- **统一的设计语言**：所有页面和组件保持一致的视觉风格
+- **图片素材**：整合高质量Unsplash图片，提升视觉吸引力
+- **优化的用户体验**：直观的导航和交互设计，降低用户使用门槛
 
-> 📱 **响应式设计** - 完美适配桌面和移动设备
+### 主要功能
 
-## 🌈 在线演示
+本工具集包含多种实用工具，每种工具都经过精心设计，包括：
 
-👉 **[点击访问在线演示](https://qgao233.github.io/mermaid-widgets/#/)**
+1. **JSON格式化工具**
+   - 支持JSON格式化、压缩和验证
+   - 提供自定义缩进选项和键值排序
+   - 实时验证和错误提示
+   - 内置简单和复杂JSON示例
 
-体验所有工具而无需安装，直接在浏览器中使用！
+2. **颜色选择器**
+   - 支持多种颜色格式：HEX、RGB、HSL
+   - 提供实时颜色预览
+   - 内置调色板和常用颜色
+   - 一键复制颜色值
 
-## 🚀 快速开始
+3. **文本对比工具**
+   - 识别两段文本之间的差异
+   - 高亮显示添加、删除和修改的内容
+   - 支持整行和单词级差异比较
 
-### 安装依赖
+4. **Excel格式化工具**
+   - 处理Excel公式和数据格式
+   - 支持多种格式化选项
 
-```bash
-npm install
+5. **视频解析工具**
+   - 支持多种视频源解析
+   - 提供多种播放选项
+
+### 技术实现
+
+- **Vue 3**：采用最新的Vue 3框架和Composition API
+- **响应式设计**：使用CSS Grid和Flexbox实现响应式布局
+- **平滑过渡**：页面切换和组件状态变化时的平滑动画
+- **模块化结构**：代码组织清晰，便于维护和扩展
+- **外部资源集成**：提供外部工具链接，扩展功能范围
+
+## 项目结构
+
+```
+src/
+├── App.vue               # 主应用组件，包含顶部导航和页脚
+├── main.js               # 应用入口文件
+├── router/               # 路由配置
+│   └── index.js          # 路由定义
+├── utils/                # 工具函数
+│   ├── excelFormatter.js # Excel格式化逻辑
+│   ├── jsonFormatter.js  # JSON格式化逻辑
+│   ├── myersDiff.js      # 文本差异比较算法
+│   └── supabase.js       # 外部资源管理
+└── views/                # 页面组件
+    ├── About.vue         # 关于页面
+    ├── Home.vue          # 首页，工具分类展示
+    ├── Examples.vue      # 示例页面
+    └── tools/            # 工具组件
+        ├── ColorPicker.vue    # 颜色选择器
+        ├── ExcelFormatter.vue # Excel格式化工具
+        ├── JsonFormatter.vue  # JSON格式化工具
+        ├── TextDiff.vue       # 文本对比工具
+        └── VideoParser.vue    # 视频解析工具
 ```
 
-### 开发模式
+## 设计改进
 
-```bash
-npm run dev
-```
+本项目从最初的单一布局设计发展为现代化的门户网站风格，主要改进包括：
 
-### 构建生产版本
+1. **布局重构**：从侧边栏导航改为顶部导航，更符合门户网站特点
+2. **首页优化**：添加了引人注目的banner区域和分类工具展示
+3. **视觉元素**：整合高质量背景图片和装饰元素，提升美观度
+4. **页脚设计**：增加了结构化的页脚，包含站点信息、热门工具和联系方式
+5. **工具界面**：统一了各工具的界面设计，提升整体一致性
 
-```bash
-npm run build
-```
+## 未来规划
 
-## 🔧 技术栈
+1. 添加更多实用工具，如二维码生成器、图片编辑器等
+2. 实现工具使用偏好的本地存储
+3. 增强移动端体验
+4. 添加多语言支持
+5. 集成用户反馈系统
 
-- Vue 3 - 渐进式JavaScript框架
-- Vite - 下一代前端构建工具
-- Vue Router - Vue.js官方路由管理器
-- CSS3 现代特性 - 实现美观的UI效果
+---
 
-## 📷 项目截图
-
-*即将添加*
-
-## 🤝 贡献指南
-
-欢迎提交问题和功能请求！请随时创建issue或提交pull request。
-
-## 📝 许可证
-
-本项目基于MIT许可证发布 - 详情请参阅[LICENSE](LICENSE)文件。
-
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=mermaid-widgets/mermaid-widgets&type=Date)](https://www.star-history.com/#mermaid-widgets/mermaid-widgets&Date) 
+© 2025 工具集 | 所有工具均在浏览器本地运行，保障数据安全 

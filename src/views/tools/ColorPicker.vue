@@ -1,15 +1,15 @@
 <template>
   <div class="color-picker">
-    <h2>颜色选择器</h2>
+    <h1>颜色选择器</h1>
+    
     <div class="color-picker-container">
       <div class="picker-section">
         <div class="form-group">
-          <label for="color-input">选择颜色：</label>
+          <label for="color-input">选择颜色</label>
           <input 
             type="color" 
             id="color-input" 
             v-model="selectedColor"
-            class="color-input"
             @input="updateColorValues"
           >
         </div>
@@ -17,50 +17,59 @@
         <div class="color-preview" :style="{ backgroundColor: selectedColor }"></div>
         
         <div class="form-group">
-          <label for="hex-value">HEX值：</label>
-          <div class="color-value-container">
+          <label for="hex-value">HEX</label>
+          <div class="input-with-button">
             <input 
               type="text" 
               id="hex-value" 
               v-model="hexValue"
-              class="color-value"
               @input="updateFromHex"
             >
-            <button class="copy-btn" @click="copyToClipboard(hexValue)">复制</button>
+            <button @click="copyToClipboard(hexValue)">复制</button>
           </div>
         </div>
         
         <div class="form-group">
-          <label for="rgb-value">RGB值：</label>
-          <div class="color-value-container">
+          <label for="rgb-value">RGB</label>
+          <div class="input-with-button">
             <input 
               type="text" 
               id="rgb-value" 
               v-model="rgbValue"
-              class="color-value"
               readonly
             >
-            <button class="copy-btn" @click="copyToClipboard(rgbValue)">复制</button>
+            <button @click="copyToClipboard(rgbValue)">复制</button>
           </div>
         </div>
         
         <div class="form-group">
-          <label for="hsl-value">HSL值：</label>
-          <div class="color-value-container">
+          <label for="hsl-value">HSL</label>
+          <div class="input-with-button">
             <input 
               type="text" 
               id="hsl-value" 
               v-model="hslValue"
-              class="color-value"
               readonly
             >
-            <button class="copy-btn" @click="copyToClipboard(hslValue)">复制</button>
+            <button @click="copyToClipboard(hslValue)">复制</button>
           </div>
         </div>
       </div>
       
       <div class="palette-section">
-        <h3>颜色方案：</h3>
+        <h2>颜色方案</h2>
+        
+        <div class="palette-type">
+          <button 
+            v-for="(type, index) in paletteTypes" 
+            :key="index"
+            :class="{ active: selectedPaletteType === type.value }"
+            @click="changePaletteType(type.value)"
+          >
+            {{ type.label }}
+          </button>
+        </div>
+        
         <div class="color-palette">
           <div 
             v-for="(color, index) in colorPalette" 
@@ -69,32 +78,20 @@
             :style="{ backgroundColor: color }"
             @click="selectPaletteColor(color)"
           >
-            <div class="palette-color-info">{{ color }}</div>
+            <div class="color-label">{{ color }}</div>
           </div>
         </div>
-        
-        <div class="palette-type">
-          <button 
-            v-for="(type, index) in paletteTypes" 
-            :key="index"
-            class="palette-type-btn"
-            :class="{ active: selectedPaletteType === type.value }"
-            @click="changePaletteType(type.value)"
-          >
-            {{ type.label }}
-          </button>
-        </div>
       </div>
-      
-      <div class="status-message" v-if="statusMessage">
-        {{ statusMessage }}
-      </div>
+    </div>
+    
+    <div class="status-message" v-if="statusMessage">
+      {{ statusMessage }}
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 
 export default {
   name: 'ColorPicker',
@@ -198,32 +195,29 @@ export default {
           colors.push(hslToHex((h - 30 + 360) % 360, s, l));
           colors.push(hslToHex((h - 60 + 360) % 360, s, l));
           break;
-          
         case 'complementary':
           // 互补色，相对色相
           colors.push(hslToHex(h, s, l));
           colors.push(hslToHex((h + 180) % 360, s, l));
-          colors.push(hslToHex((h + 180) % 360, s, Math.max(l - 20, 0)));
-          colors.push(hslToHex((h + 180) % 360, Math.max(s - 20, 0), l));
-          colors.push(hslToHex(h, Math.max(s - 20, 0), l));
+          colors.push(hslToHex((h + 180) % 360, s, l - 10));
+          colors.push(hslToHex((h + 180) % 360, s, l + 10));
+          colors.push(hslToHex(h, s, l - 10));
           break;
-          
         case 'triadic':
-          // 三元色，三等分色环
+          // 三元色，均分色相
           colors.push(hslToHex(h, s, l));
           colors.push(hslToHex((h + 120) % 360, s, l));
           colors.push(hslToHex((h + 240) % 360, s, l));
-          colors.push(hslToHex((h + 120) % 360, Math.min(s + 10, 100), l));
-          colors.push(hslToHex((h + 240) % 360, Math.min(s + 10, 100), l));
+          colors.push(hslToHex((h + 60) % 360, s, l));
+          colors.push(hslToHex((h + 180) % 360, s, l));
           break;
-          
         case 'monochromatic':
-          // 单色调，同一色相不同明度饱和度
+          // 单色调，相同色相不同亮度
           colors.push(hslToHex(h, s, l));
-          colors.push(hslToHex(h, s, Math.max(l - 20, 0)));
-          colors.push(hslToHex(h, s, Math.min(l + 20, 100)));
-          colors.push(hslToHex(h, Math.max(s - 20, 0), l));
-          colors.push(hslToHex(h, Math.min(s + 20, 100), l));
+          colors.push(hslToHex(h, s, Math.max(0, l - 20)));
+          colors.push(hslToHex(h, s, Math.max(0, l - 40)));
+          colors.push(hslToHex(h, s, Math.min(100, l + 20)));
+          colors.push(hslToHex(h, s, Math.min(100, l + 40)));
           break;
       }
       
@@ -266,52 +260,45 @@ export default {
       return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     };
     
-    // 选择色板颜色
-    const selectPaletteColor = (color) => {
-      selectedColor.value = color;
-      hexValue.value = color;
-      updateColorValues();
-    };
-    
-    // 更改调色板类型
-    const changePaletteType = (type) => {
-      selectedPaletteType.value = type;
-    };
-    
     // 复制到剪贴板
     const copyToClipboard = (text) => {
       navigator.clipboard.writeText(text)
         .then(() => {
-          showStatusMessage('已复制到剪贴板');
+          statusMessage.value = '已复制到剪贴板';
+          setTimeout(() => {
+            statusMessage.value = '';
+          }, 2000);
         })
         .catch(err => {
-          console.error('复制失败:', err);
-          showStatusMessage('复制失败');
+          statusMessage.value = '复制失败';
+          console.error('复制失败: ', err);
         });
     };
     
-    // 显示状态消息
-    const showStatusMessage = (message) => {
-      statusMessage.value = message;
-      
-      setTimeout(() => {
-        if (statusMessage.value === message) {
-          statusMessage.value = '';
-        }
-      }, 2000);
+    // 选择调色板中的颜色
+    const selectPaletteColor = (color) => {
+      selectedColor.value = color;
+      hexValue.value = color;
+      rgbValue.value = hexToRgb(color);
+      hslValue.value = hexToHsl(color);
     };
     
-    // 计算属性：颜色方案
+    // 改变调色板类型
+    const changePaletteType = (type) => {
+      selectedPaletteType.value = type;
+    };
+    
+    // 调色板颜色计算
     const colorPalette = computed(() => {
       return generateColorPalette(selectedPaletteType.value, selectedColor.value);
     });
     
-    // 初始化
-    updateColorValues();
+    // 监听selectedColor变化更新其他值
+    watch(selectedColor, updateColorValues);
     
-    // 监听调色板类型变化
-    watch(selectedPaletteType, () => {
-      // 当调色板类型变化时，不做特殊处理，由计算属性自动更新
+    // 组件加载时更新颜色值
+    onMounted(() => {
+      updateColorValues();
     });
     
     return {
@@ -325,9 +312,9 @@ export default {
       colorPalette,
       updateColorValues,
       updateFromHex,
+      copyToClipboard,
       selectPaletteColor,
-      changePaletteType,
-      copyToClipboard
+      changePaletteType
     };
   }
 }
@@ -335,104 +322,135 @@ export default {
 
 <style scoped>
 .color-picker {
-  padding: 20px 0;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin-bottom: 24px;
+  color: #333;
 }
 
 h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #2c3e50;
-}
-
-h3 {
-  margin-bottom: 15px;
-  color: #2c3e50;
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: #333;
 }
 
 .color-picker-container {
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 25px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.picker-section {
-  margin-bottom: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 label {
   display: block;
   margin-bottom: 8px;
-  font-weight: bold;
-  color: #333;
+  font-size: 0.875rem;
+  color: #555;
 }
 
-.color-input {
+input[type="color"] {
   width: 100%;
-  height: 50px;
-  padding: 0;
-  border: 1px solid #ccc;
+  height: 40px;
+  border: 1px solid #e0e0e0;
   border-radius: 4px;
   cursor: pointer;
+  padding: 2px;
 }
 
 .color-preview {
   width: 100%;
-  height: 100px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.color-value-container {
-  display: flex;
-  gap: 10px;
-}
-
-.color-value {
-  flex-grow: 1;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
+  height: 60px;
   border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
 }
 
-.copy-btn {
-  padding: 8px 12px;
-  background-color: #3498db;
-  color: white;
-  border: none;
+.input-with-button {
+  display: flex;
+}
+
+input[type="text"] {
+  flex: 1;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 0.875rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px 0 0 4px;
+  outline: none;
+}
+
+input[type="text"]:focus {
+  border-color: #2196f3;
+}
+
+button {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-left: none;
+  height: 36px;
+  padding: 0 12px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  border-radius: 0 4px 4px 0;
+  color: #555;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
+
+.palette-type {
+  display: flex;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.palette-type button {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
+  font-size: 0.75rem;
+  color: #555;
+  transition: all 0.2s;
 }
 
-.copy-btn:hover {
-  background-color: #2980b9;
+.palette-type button:hover {
+  background-color: #e0e0e0;
 }
 
-.palette-section {
-  margin-top: 30px;
+.palette-type button.active {
+  background-color: #2196f3;
+  border-color: #2196f3;
+  color: white;
 }
 
 .color-palette {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
-  margin-bottom: 20px;
 }
 
 .palette-color {
-  height: 60px;
+  aspect-ratio: 1;
   border-radius: 4px;
   cursor: pointer;
   position: relative;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
   transition: transform 0.2s;
 }
 
@@ -440,65 +458,42 @@ label {
   transform: scale(1.05);
 }
 
-.palette-color-info {
+.color-label {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.6);
   color: white;
-  font-size: 12px;
   padding: 4px;
+  font-size: 0.7rem;
   text-align: center;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.2s;
 }
 
-.palette-color:hover .palette-color-info {
+.palette-color:hover .color-label {
   opacity: 1;
-}
-
-.palette-type {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-}
-
-.palette-type-btn {
-  padding: 8px 12px;
-  background-color: #f1f1f1;
-  color: #333;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.palette-type-btn:hover {
-  background-color: #e1e1e1;
-}
-
-.palette-type-btn.active {
-  background-color: #3498db;
-  color: white;
 }
 
 .status-message {
   margin-top: 20px;
-  padding: 10px;
-  background-color: #e8f5e9;
-  color: #388e3c;
-  border: 1px solid #4caf50;
+  padding: 8px 12px;
+  background-color: #e3f2fd;
+  color: #2196f3;
   border-radius: 4px;
+  font-size: 0.875rem;
   text-align: center;
 }
 
 @media (max-width: 768px) {
-  .color-palette {
-    grid-template-columns: repeat(3, 1fr);
+  .color-picker-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .palette-color {
+    aspect-ratio: auto;
+    height: 60px;
   }
 }
 </style> 
