@@ -8,11 +8,19 @@
     "preview": "vite preview",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["tools", "utilities", "excel-formatter", "json-formatter", "text-diff", "color-picker"],
+  "keywords": [
+    "tools",
+    "utilities",
+    "excel-formatter",
+    "json-formatter",
+    "text-diff",
+    "color-picker"
+  ],
   "author": "",
   "license": "ISC",
   "description": "实用工具箱 - 为开发者和日常办公提供多种便捷工具",
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
     "@vitejs/plugin-vue": "^5.2.3",
     "vite": "^6.2.3",
     "vue": "^3.5.13",

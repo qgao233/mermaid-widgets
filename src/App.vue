@@ -72,50 +72,35 @@
           <span class="menu-toggle" :class="{ 'menu-toggle-open': externalOpen }" v-show="!sidebarCollapsed">▼</span>
         </div>
         <nav class="external-nav" v-show="externalOpen || sidebarCollapsed">
-          <a href="https://cron.ciding.cc/" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">⏱️</span>
-            <span v-show="!sidebarCollapsed">Cron表达式生成器</span>
-          </a>
-          <a href="https://highlightcode.com/" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">✨</span>
-            <span v-show="!sidebarCollapsed">代码高亮工具</span>
-          </a>
-          <a href="https://online.rapidresizer.com/photograph-to-pattern.php" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">✏️</span>
-            <span v-show="!sidebarCollapsed">图片转线描</span>
-          </a>
-          <a href="https://www.json.cn/run/" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">▶️</span>
-            <span v-show="!sidebarCollapsed">在线编译工具</span>
-          </a>
-          <a href="https://www.akuziti.com/yw/huati.php" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">𝓐</span>
-            <span v-show="!sidebarCollapsed">英文花体字转换器</span>
-          </a>
-          <a href="https://www.keepscreenon.com/" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">💡</span>
-            <span v-show="!sidebarCollapsed">保持屏幕常亮</span>
-          </a>
-          <a href="https://mavo.io/demos/svgpath/" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">🖋️</span>
-            <span v-show="!sidebarCollapsed">画SVG</span>
-          </a>
-          <a href="https://devtool.tech/html-md" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">📝</span>
-            <span v-show="!sidebarCollapsed">HTML转Markdown</span>
-          </a>
-          <a href="https://www.koukoutu.com/removebgtool/all" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">✂️</span>
-            <span v-show="!sidebarCollapsed">自动抠图</span>
-          </a>
-          <a href="https://www.pdfconvertonline.com/cn/pdf-to-jpg/" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">🔄</span>
-            <span v-show="!sidebarCollapsed">PDF转JPG</span>
-          </a>
-          <a href="https://www.xiwnn.com/piano/" target="_blank" class="nav-link external-link">
-            <span class="nav-icon">🎹</span>
-            <span v-show="!sidebarCollapsed">在线钢琴模拟器</span>
-          </a>
+          <!-- 加载中状态 -->
+          <div v-if="loadingExternalTools" class="loading-state">
+            <div class="loading-spinner"></div>
+            <span v-show="!sidebarCollapsed">加载中...</span>
+          </div>
+          
+          <!-- 加载失败状态 -->
+          <div v-else-if="externalToolsError" class="error-state">
+            <span class="nav-icon">⚠️</span>
+            <span v-show="!sidebarCollapsed">{{ externalToolsError }}</span>
+          </div>
+          
+          <!-- 数据为空状态 -->
+          <div v-else-if="externalTools.length === 0" class="empty-state">
+            <span class="nav-icon">📂</span>
+            <span v-show="!sidebarCollapsed">暂无外链工具</span>
+          </div>
+          
+          <!-- 数据加载成功状态 -->
+          <template v-else>
+            <a v-for="tool in externalTools" 
+               :key="tool.id" 
+               :href="tool.url" 
+               target="_blank" 
+               class="nav-link external-link">
+              <span class="nav-icon">{{ tool.icon }}</span>
+              <span v-show="!sidebarCollapsed">{{ tool.name }}</span>
+            </a>
+          </template>
         </nav>
       </div>
       
@@ -136,6 +121,8 @@
 </template>
 
 <script>
+import { getExternalTools } from './utils/supabase';
+
 export default {
   name: 'App',
   data() {
@@ -143,8 +130,15 @@ export default {
       internalOpen: true, // 默认展开
       externalOpen: true, // 默认展开
       otherOpen: true,    // 默认展开
-      sidebarCollapsed: false // 侧边栏折叠状态
+      sidebarCollapsed: false, // 侧边栏折叠状态
+      externalTools: [], // 外链工具列表
+      loadingExternalTools: false, // 加载状态
+      externalToolsError: null // 错误信息
     };
+  },
+  async created() {
+    // 组件创建时加载外链工具数据
+    await this.fetchExternalTools();
   },
   methods: {
     toggleInternal() {
@@ -172,6 +166,18 @@ export default {
           this.externalOpen = true;
           this.otherOpen = true;
         }, 200);
+      }
+    },
+    async fetchExternalTools() {
+      try {
+        this.loadingExternalTools = true;
+        this.externalToolsError = null;
+        this.externalTools = await getExternalTools();
+      } catch (error) {
+        console.error('获取外链工具失败:', error);
+        this.externalToolsError = '加载失败，请刷新重试';
+      } finally {
+        this.loadingExternalTools = false;
       }
     }
   }
@@ -420,6 +426,42 @@ body {
   box-shadow: 0 4px 15px rgba(166, 193, 238, 0.3);
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
   border: none;
+}
+
+/* 加载状态样式 */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  color: #623b5a;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(251, 194, 235, 0.3);
+  border-radius: 50%;
+  border-top-color: #fbc2eb;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 错误状态样式 */
+.error-state, .empty-state {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  margin: 3px 8px;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  color: #623b5a;
+  font-weight: 500;
 }
 
 .content {
