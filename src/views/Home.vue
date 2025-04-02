@@ -88,6 +88,25 @@
       </div>
     </section>
     
+    <!-- 通信工具区域 -->
+    <section class="tools-section">
+      <div class="section-header">
+        <h2>通信工具</h2>
+        <p>实时聊天与通信相关工具</p>
+      </div>
+      
+      <div class="tools-grid">
+        <router-link to="/tools/chat" class="tool-card">
+          <div class="tool-icon">💬</div>
+          <div class="tool-content">
+            <h3>实时聊天室</h3>
+            <p>基于Supabase的实时聊天工具</p>
+          </div>
+          <div class="tool-image chat-image"></div>
+        </router-link>
+      </div>
+    </section>
+    
     <!-- 底部图片区域 -->
     <section class="bottom-image-section">
       <div class="overlay"></div>
@@ -100,13 +119,14 @@
 </template>
 
 <script>
+
 export default {
   name: 'Home',
   data() {
     return {
       searchQuery: ''
     }
-  }
+  },
 }
 </script>
 
@@ -283,6 +303,10 @@ h1 {
 
 .video-image {
   background-image: url('https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80');
+}
+
+.chat-image {
+  background-image: url('https://images.unsplash.com/photo-1577563908411-5077b6dc7624?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80');
 }
 
 .tool-icon {

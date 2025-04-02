@@ -6,6 +6,8 @@ import JsonFormatter from '../views/tools/JsonFormatter.vue'
 import TextDiff from '../views/tools/TextDiff.vue'
 import ColorPicker from '../views/tools/ColorPicker.vue'
 import VideoParser from '../views/tools/VideoParser.vue'
+import Chat from '../views/tools/Chat.vue'
+import AuthCallback from '../views/AuthCallback.vue'
 
 const routes = [
   {
@@ -42,6 +44,16 @@ const routes = [
     path: '/tools/video-parser',
     name: 'VideoParser',
     component: VideoParser
+  },
+  {
+    path: '/tools/chat',
+    name: 'Chat',
+    component: Chat
+  },
+  {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: AuthCallback
   }
 ]
 
