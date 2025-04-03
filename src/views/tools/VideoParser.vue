@@ -1,6 +1,6 @@
 <template>
   <div class="video-parser-container">
-    <div class="header">
+    <div class="video-parser-header">
       <h1>视频解析工具</h1>
       <p class="description">输入视频链接，同时使用多个解析接口进行解析，找到最佳播放源</p>
       <div class="disclaimer">仅供学习研究使用，请勿用于任何商业用途。请尊重版权，支持正版。</div>
@@ -309,7 +309,7 @@ export default {
   padding: 20px;
 }
 
-.header {
+.video-parser-header {
   text-align: center;
   margin-bottom: 30px;
 }
