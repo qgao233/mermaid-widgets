@@ -213,7 +213,8 @@ export default {
 
 <style scoped>
 .text-diff {
-  padding: 20px 0;
+  margin: 0 auto;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   height: calc(100vh - 40px);

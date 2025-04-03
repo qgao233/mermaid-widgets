@@ -99,7 +99,9 @@ export default {
 
 <style scoped>
 .excel-formatter {
-  padding: 20px 0;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 h2 {

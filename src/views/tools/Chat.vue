@@ -3,13 +3,13 @@
     <h1>实时聊天工具</h1>
     
     <div class="chat-main">
-      <div class="header">
-        <div class="user-info">
-          <img :src="userAvatar" class="avatar" />
-          <span>{{ userName }}</span>
-          <button v-if="!session" @click="signInWithGoogle" class="login-button-small">使用Google登录</button>
+      <div class="chat-header">
+        <div class="chat-user-info">
+          <img :src="userAvatar" class="chat-avatar" />
+          <span class="chat-username">{{ userName }}</span>
+          <button v-if="!session" @click="signInWithGoogle" class="chat-login-button">使用Google登录</button>
         </div>
-        <button v-if="session" @click="signOut" class="logout-button">退出登录</button>
+        <button v-if="session" @click="signOut" class="chat-logout-button">退出登录</button>
       </div>
       
       <div class="messages" ref="messagesContainer">
@@ -235,7 +235,7 @@ export default {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl
+          redirectTo: redirectUrl //这个重定向URL是supabase的，用于登录成功后跳转回当前页面，因此必须提前在supabase的设置中添加
         }
       });
       
@@ -314,9 +314,7 @@ export default {
     // 滚动到底部
     const scrollToBottom = () => {
       nextTick(() => {
-        if (messagesEnd.value) {
-          messagesEnd.value.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
-        } else if (messagesContainer.value) {
+        if (messagesContainer.value) {
           messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
         }
       });
@@ -437,7 +435,7 @@ h1 {
   font-weight: 500;
 }
 
-.login-button-small {
+.chat-login-button {
   background-color: #4285f4;
   color: white;
   border: none;
@@ -450,7 +448,7 @@ h1 {
   box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
 }
 
-.login-button-small:hover {
+.chat-login-button:hover {
   background-color: #3367d6;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
@@ -466,7 +464,7 @@ h1 {
   background-color: #fff;
 }
 
-.header {
+.chat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -475,13 +473,13 @@ h1 {
   border-bottom: 1px solid #eaeaea;
 }
 
-.user-info {
+.chat-user-info {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.avatar {
+.chat-avatar {
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -490,12 +488,12 @@ h1 {
   border: 2px solid #fff;
 }
 
-.user-info span {
+.chat-username {
   font-weight: 500;
   color: #2c3e50;
 }
 
-.logout-button {
+.chat-logout-button {
   background-color: #f5f5f5;
   color: #e53935;
   border: 1px solid #e53935;
@@ -507,7 +505,7 @@ h1 {
   font-size: 14px;
 }
 
-.logout-button:hover {
+.chat-logout-button:hover {
   background-color: #e53935;
   color: white;
 }
@@ -691,6 +689,12 @@ h1 {
   box-shadow: none;
 }
 
+.messages-end {
+  height: 1px;
+  margin-bottom: 0;
+  opacity: 0;
+}
+
 @media (max-width: 768px) {
   .chat-main {
     height: 80vh;
@@ -699,11 +703,5 @@ h1 {
   .message {
     max-width: 85%;
   }
-}
-
-.messages-end {
-  height: 1px;
-  margin-bottom: 0;
-  opacity: 0;
 }
 </style> 

@@ -37,6 +37,10 @@
                 <span class="item-icon">🎬</span>
                 <span>视频解析</span>
               </router-link>
+              <router-link to="/tools/chat" class="dropdown-item">
+                <span class="item-icon">💬</span>
+                <span>实时聊天</span>
+              </router-link>
             </div>
           </div>
           
@@ -370,7 +374,7 @@ body {
 }
 
 .dropdown-icon {
-  font-size: 0.7rem;
+  font-size: 1rem;
   margin-left: 4px;
   transition: transform 0.2s;
 }
