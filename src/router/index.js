@@ -7,6 +7,7 @@ import TextDiff from '../views/tools/TextDiff.vue'
 import ColorPicker from '../views/tools/ColorPicker.vue'
 import VideoParser from '../views/tools/VideoParser.vue'
 import Chat from '../views/tools/Chat.vue'
+import PrivateChat from '../views/tools/PrivateChat.vue'
 import AuthCallback from '../views/AuthCallback.vue'
 
 const routes = [
@@ -49,6 +50,11 @@ const routes = [
     path: '/tools/chat',
     name: 'Chat',
     component: Chat
+  },
+  {
+    path: '/tools/private-chat',
+    name: 'PrivateChat',
+    component: PrivateChat
   },
   {
     path: '/auth/callback',

@@ -204,14 +204,21 @@
         </div>
       </div>
     </footer>
+    
+    <!-- 添加全局Toast容器 -->
+    <ToastContainer />
   </div>
 </template>
 
 <script>
 import { getExternalTools } from './utils/supabase';
+import ToastContainer from './components/common/ToastContainer.vue';
 
 export default {
   name: 'App',
+  components: {
+    ToastContainer
+  },
   data() {
     return {
       dropdowns: {

@@ -2,14 +2,26 @@
   <div class="chat-container">
     <h1>实时聊天工具</h1>
     
+    <div class="chat-navigation">
+      <router-link to="/tools/chat" class="nav-link active">公共聊天</router-link>
+      <router-link to="/tools/private-chat" class="nav-link">私人聊天</router-link>
+    </div>
+    
     <div class="chat-main">
       <div class="chat-header">
         <div class="chat-user-info">
           <img :src="userAvatar" class="chat-avatar" />
           <span class="chat-username">{{ userName }}</span>
-          <button v-if="!session" @click="signInWithGoogle" class="chat-login-button">使用Google登录</button>
+          <button v-if="!session" @click="signInWithGoogle" class="chat-login-button">
+            <GoogleIcon :size="16" />
+            Google登录
+          </button>
+          <button v-if="!session" @click="changeAnonymousName" class="chat-random-name-button">随机昵称</button>
         </div>
-        <button v-if="session" @click="signOut" class="chat-logout-button">退出登录</button>
+        <div class="chat-actions">
+          <button v-if="session" @click="goToPrivateChat" class="chat-action-button">创建私聊</button>
+          <button v-if="session" @click="signOut" class="chat-logout-button">退出登录</button>
+        </div>
       </div>
       
       <div class="messages" ref="messagesContainer">
@@ -37,24 +49,13 @@
       
       <div class="input-area">
         <input 
-          v-if="!showNameInput"
           v-model="newMessage" 
           @keyup.enter="sendMessage"
           ref="messageInput"
           placeholder="输入消息..." 
           class="message-input" 
         />
-        <input 
-          v-else
-          v-model="inputAnonymousName" 
-          @keyup.enter="setAnonymousName"
-          ref="nameInput"
-          placeholder="请先输入您的昵称..." 
-          class="message-input" 
-          autofocus
-        />
         <button 
-          v-if="!showNameInput" 
           @click="sendMessage" 
           class="send-button"
           :disabled="!newMessage.trim() || sending"
@@ -62,19 +63,26 @@
           <span v-if="sending">发送中...</span>
           <span v-else>发送</span>
         </button>
-        <button v-else @click="setAnonymousName" class="send-button">确定</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick, computed, inject } from 'vue';
 import { supabase } from '../../utils/supabase';
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
+import { GoogleIcon } from '../../components/icons';
 
 export default {
   name: 'ChatTool',
+  components: {
+    GoogleIcon
+  },
   setup() {
+    const router = useRouter();
+    const store = useStore();
     const session = ref(null);
     const messages = ref([]);
     const newMessage = ref('');
@@ -83,12 +91,12 @@ export default {
     const loading = ref(true);
     const sending = ref(false);
     const messageInput = ref(null);
-    const nameInput = ref(null);
     const anonymousName = ref('游客' + Math.floor(Math.random() * 1000)); // 默认随机游客名
-    const inputAnonymousName = ref('');
     const anonymousId = ref('anon_' + Date.now().toString()); // 为每个匿名会话生成一个唯一ID
-    const showNameInput = ref(false); // 默认不显示昵称输入
     let subscription = null;
+    
+    // 获取Toast服务
+    const toast = inject('toast');
 
     // 获取当前会话
     const getSession = async () => {
@@ -97,19 +105,21 @@ export default {
       session.value = data.session;
     };
 
-    // 设置匿名用户名
-    const setAnonymousName = () => {
-      if (inputAnonymousName.value.trim()) {
-        anonymousName.value = inputAnonymousName.value.trim();
-      }
-      showNameInput.value = false;
-      
-      // 使用 nextTick 确保在 DOM 更新后再设置焦点
-      nextTick(() => {
-        if (messageInput.value) {
-          messageInput.value.focus();
-        }
-      });
+    // 生成随机匿名用户名
+    const generateRandomName = () => {
+      const prefixes = ['快乐', '开心', '阳光', '微笑', '活力', '机智', '聪明', '勇敢', '友善', '好奇'];
+      const nouns = ['小猫', '小狗', '企鹅', '狮子', '老虎', '熊猫', '兔子', '松鼠', '鹦鹉', '海豚'];
+      const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+      const randomNum = Math.floor(Math.random() * 1000);
+      return `${randomPrefix}${randomNoun}${randomNum}`;
+    };
+
+    // 更换匿名用户名称
+    const changeAnonymousName = () => {
+      anonymousName.value = generateRandomName();
+      // 使用toast显示提示信息
+      toast.show(`你的昵称已更改为: ${anonymousName.value}`);
     };
 
     // 计算用户头像
@@ -167,17 +177,6 @@ export default {
     const sendMessage = async () => {
       if (!newMessage.value.trim() || sending.value) return;
       
-      // 如果是匿名用户且未设置过昵称，提示设置昵称
-      if (!session.value && anonymousName.value.startsWith('游客')) {
-        showNameInput.value = true;
-        nextTick(() => {
-          if (nameInput.value) {
-            nameInput.value.focus();
-          }
-        });
-        return;
-      }
-      
       const messageContent = newMessage.value.trim();
       newMessage.value = ''; // 立即清空输入框，提升体验
       sending.value = true;
@@ -193,7 +192,7 @@ export default {
         messageData.avatar_url = session.value.user.user_metadata.avatar_url || 
           `https://ui-avatars.com/api/?name=${encodeURIComponent(messageData.username)}&background=random`;
       } else {
-        // 匿名用户
+        // 匿名用户 - 直接使用当前匿名名称
         messageData.username = anonymousName.value;
         messageData.anonymous_id = anonymousId.value;
         messageData.avatar_url = `https://ui-avatars.com/api/?name=${encodeURIComponent(anonymousName.value)}&background=random`;
@@ -206,7 +205,7 @@ export default {
         
         if (error) {
           console.error('发送消息失败:', error);
-          alert('发送消息失败，请重试');
+          toast.show('发送消息失败，请重试');
           newMessage.value = messageContent; // 恢复消息内容
           return;
         }
@@ -219,7 +218,7 @@ export default {
         });
       } catch (err) {
         console.error('发送消息出错:', err);
-        alert('发送消息失败，请重试');
+        toast.show('发送消息失败，请重试');
         newMessage.value = messageContent; // 恢复消息内容
       } finally {
         sending.value = false;
@@ -228,6 +227,9 @@ export default {
 
     // 使用Google登录
     const signInWithGoogle = async () => {
+      // 保存当前路径作为登录成功后的重定向路径
+      store.dispatch('saveAuthSource', '/tools/chat');
+      
       // 使用回调URL进行OAuth认证
       const redirectUrl = `${window.location.origin}${window.location.pathname}#/auth/callback`;
       console.log('登录重定向URL:', redirectUrl);
@@ -241,7 +243,7 @@ export default {
       
       if (error) {
         console.error('登录失败:', error);
-        alert('登录失败，请重试');
+        toast.show('登录失败，请重试');
       }
     };
 
@@ -250,7 +252,7 @@ export default {
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('退出登录失败:', error);
-        alert('退出登录失败，请重试');
+        toast.show('退出登录失败，请重试');
         return;
       }
       
@@ -325,6 +327,11 @@ export default {
       scrollToBottom();
     });
 
+    // 跳转到私聊页面
+    const goToPrivateChat = () => {
+      router.push('/tools/private-chat');
+    };
+
     onMounted(async () => {
       await getSession();
       await fetchMessages();
@@ -343,6 +350,9 @@ export default {
         const savedId = localStorage.getItem('anonymousId');
         if (savedName) {
           anonymousName.value = savedName;
+        } else {
+          // 没有保存的名称，生成一个更友好的随机名称
+          anonymousName.value = generateRandomName();
         }
         if (savedId) {
           anonymousId.value = savedId;
@@ -399,20 +409,18 @@ export default {
       messagesContainer,
       messagesEnd,
       anonymousName,
-      inputAnonymousName,
       userAvatar,
       userName,
       signInWithGoogle,
       signOut,
       sendMessage,
       formatTime,
-      setAnonymousName,
       isMyMessage,
-      showNameInput,
       loading,
       sending,
       messageInput,
-      nameInput
+      goToPrivateChat,
+      changeAnonymousName
     };
   }
 }
@@ -425,6 +433,32 @@ export default {
   padding: 20px;
   font-family: 'Helvetica Neue', Arial, sans-serif;
   color: #333;
+  position: relative;
+}
+
+.chat-navigation {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.nav-link {
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: #555;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: #f0f0f0;
+}
+
+.nav-link.active {
+  background-color: #e3f2fd;
+  color: #4285f4;
 }
 
 h1 {
@@ -439,19 +473,41 @@ h1 {
   background-color: #4285f4;
   color: white;
   border: none;
-  padding: 5px 14px;
+  padding: 5px 14px 5px 10px;
   border-radius: 20px;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-left: 10px;
   box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .chat-login-button:hover {
   background-color: #3367d6;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
+}
+
+.chat-random-name-button {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+  box-shadow: 0 2px 5px rgba(255, 152, 0, 0.3);
+}
+
+.chat-random-name-button:hover {
+  background-color: #f57c00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 152, 0, 0.4);
 }
 
 .chat-main {
@@ -508,6 +564,30 @@ h1 {
 .chat-logout-button:hover {
   background-color: #e53935;
   color: white;
+}
+
+.chat-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.chat-action-button {
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.chat-action-button:hover {
+  background-color: #3367d6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
 }
 
 .messages {
@@ -609,12 +689,12 @@ h1 {
 
 .my-message .message-content {
   background-color: #e3f2fd;
-  border-bottom-right-radius: 4px;
+  border-top-right-radius: 4px;
 }
 
 .other-message .message-content {
   background-color: white;
-  border-bottom-left-radius: 4px;
+  border-top-left-radius: 4px;
 }
 
 .message-header {
