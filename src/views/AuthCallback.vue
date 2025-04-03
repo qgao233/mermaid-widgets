@@ -8,6 +8,7 @@
 <script>
 import { onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 import { supabase } from '../utils/supabase';
 
 export default {
@@ -15,6 +16,7 @@ export default {
   setup() {
     const router = useRouter();
     const route = useRoute();
+    const store = useStore();
 
     onMounted(async () => {
       console.log('认证回调页面加载，哈希参数:', route.hash);
@@ -40,10 +42,15 @@ export default {
           }
         }
         
-        router.replace({ path: '/tools/chat', replace: true });
+        // 从Vuex中获取登录前保存的路径
+        const redirectPath = store.getters.getAuthRedirectPath;
+        console.log('登录成功，重定向到:', redirectPath);
+        
+        // 替换当前路由，跳转到登录前的页面
+        router.replace({ path: redirectPath, replace: true });
       } else {
         console.log('未找到授权码，可能是直接访问回调页面');
-        router.push('/tools/chat');
+        router.push('/');
       }
     });
 
