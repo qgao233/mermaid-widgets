@@ -34,7 +34,7 @@
         </div>
         <div v-for="message in messages" :key="message.id" :class="['message', isMyMessage(message) ? 'my-message' : 'other-message']">
           <div class="message-avatar">
-            <img :src="message.avatar_url" alt="avatar" />
+            <img :src="message.avatar_url" />
           </div>
           <div class="message-content">
             <div class="message-header">
