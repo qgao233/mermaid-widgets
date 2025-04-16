@@ -50,6 +50,25 @@
       </div>
     </section>
     
+    <!-- 金融工具区域 -->
+    <section class="tools-section">
+      <div class="section-header">
+        <h2>金融工具</h2>
+        <p>股票分析与投资辅助工具</p>
+      </div>
+      
+      <div class="tools-grid">
+        <router-link to="/tools/stock-recommender" class="tool-card">
+          <div class="tool-icon">📈</div>
+          <div class="tool-content">
+            <h3>股票推荐工具</h3>
+            <p>基于新闻热点和技术分析的股票推荐</p>
+          </div>
+          <div class="tool-image finance-image"></div>
+        </router-link>
+      </div>
+    </section>
+    
     <!-- 色彩工具区域 -->
     <section class="tools-section">
       <div class="section-header">
@@ -96,7 +115,7 @@
       </div>
       
       <div class="tools-grid">
-        <router-link to="/tools/chat" class="tool-card">
+        <router-link to="/tools/chat/chat" class="tool-card">
           <div class="tool-icon">💬</div>
           <div class="tool-content">
             <h3>实时聊天室</h3>
@@ -462,5 +481,10 @@ p {
   .bottom-image-section p {
     font-size: 1rem;
   }
+}
+
+/* 金融工具背景 */
+.finance-image {
+  background-image: url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80');
 }
 </style> 

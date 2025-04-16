@@ -37,7 +37,7 @@
                 <span class="item-icon">🎬</span>
                 <span>视频解析</span>
               </router-link>
-              <router-link to="/tools/chat" class="dropdown-item">
+              <router-link to="/tools/chat/chat" class="dropdown-item">
                 <span class="item-icon">💬</span>
                 <span>实时聊天</span>
               </router-link>

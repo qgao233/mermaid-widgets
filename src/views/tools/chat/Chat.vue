@@ -3,8 +3,8 @@
     <h1>实时聊天工具</h1>
     
     <div class="chat-navigation">
-      <router-link to="/tools/chat" class="nav-link active">公共聊天</router-link>
-      <router-link to="/tools/private-chat" class="nav-link">私人聊天</router-link>
+      <router-link to="/tools/chat/chat" class="nav-link active">公共聊天</router-link>
+      <router-link to="/tools/chat/private-chat" class="nav-link">私人聊天</router-link>
     </div>
     
     <div class="chat-main">
@@ -70,10 +70,10 @@
 
 <script>
 import { ref, onMounted, onUnmounted, watch, nextTick, computed, inject } from 'vue';
-import { supabase } from '../../utils/supabase';
+import { supabase } from '../../../utils/supabase';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-import { GoogleIcon } from '../../components/icons';
+import { GoogleIcon } from '../../../components/icons';
 
 export default {
   name: 'ChatTool',
@@ -228,7 +228,7 @@ export default {
     // 使用Google登录
     const signInWithGoogle = async () => {
       // 保存当前路径作为登录成功后的重定向路径
-      store.dispatch('saveAuthSource', '/tools/chat');
+      store.dispatch('saveAuthSource', '/tools/chat/chat');
       
       // 使用回调URL进行OAuth认证
       const redirectUrl = `${window.location.origin}${window.location.pathname}#/auth/callback`;
