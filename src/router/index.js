@@ -6,8 +6,10 @@ import JsonFormatter from '../views/tools/JsonFormatter.vue'
 import TextDiff from '../views/tools/TextDiff.vue'
 import ColorPicker from '../views/tools/ColorPicker.vue'
 import VideoParser from '../views/tools/VideoParser.vue'
-import Chat from '../views/tools/Chat.vue'
-import PrivateChat from '../views/tools/PrivateChat.vue'
+import Chat from '../views/tools/chat/Chat.vue'
+import PrivateChat from '../views/tools/chat/PrivateChat.vue'
+// import StockRecommender from '../views/tools/stock/StockRecommender.vue'
+// import Stock from '../views/tools/stock/index.vue'
 import AuthCallback from '../views/AuthCallback.vue'
 
 const routes = [
@@ -47,15 +49,25 @@ const routes = [
     component: VideoParser
   },
   {
-    path: '/tools/chat',
+    path: '/tools/chat/chat',
     name: 'Chat',
     component: Chat
   },
   {
-    path: '/tools/private-chat',
+    path: '/tools/chat/private-chat',
     name: 'PrivateChat',
     component: PrivateChat
   },
+  // {
+  //   path: '/tools/stock/stock-recommender',
+  //   name: 'StockRecommender',
+  //   component: StockRecommender
+  // },
+  // {
+  //   path: '/tools/stock/stock',
+  //   name: 'StockRecommender',
+  //   component: Stock
+  // },
   {
     path: '/auth/callback',
     name: 'AuthCallback',
