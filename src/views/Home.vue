@@ -58,7 +58,7 @@
       </div>
       
       <div class="tools-grid">
-        <router-link to="/tools/stock-recommender" class="tool-card">
+        <router-link to="/tools/stock/stock-recommender" class="tool-card">
           <div class="tool-icon">📈</div>
           <div class="tool-content">
             <h3>股票推荐工具</h3>
