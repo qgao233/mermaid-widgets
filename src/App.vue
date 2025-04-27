@@ -211,7 +211,7 @@
 </template>
 
 <script>
-import { getExternalTools } from './utils/supabase';
+import { getExternalTools } from '@/api/externalTools';
 import ToastContainer from './components/common/ToastContainer.vue';
 
 export default {
