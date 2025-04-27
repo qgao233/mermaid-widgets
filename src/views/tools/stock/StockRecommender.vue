@@ -6,14 +6,23 @@
       <div class="progress-section">
         <div class="progress-header">
           <h3>执行进度</h3>
-          <button 
-            v-if="!isCompleted"
-            @click="handleButtonClick"
-            :disabled="isProcessing || isButtonDisabled"
-            class="start-button"
-          >
-            {{ getButtonText }}
-          </button>
+          <div class="button-group">
+            <button 
+              v-if="isCompleted"
+              @click="handleRestart"
+              class="restart-button"
+            >
+              重新开始
+            </button>
+            <button 
+              v-if="!isCompleted"
+              @click="handleButtonClick"
+              :disabled="isProcessing || isButtonDisabled"
+              class="start-button"
+            >
+              {{ getButtonText }}
+            </button>
+          </div>
         </div>
         
         <!-- 添加新闻提示 -->
@@ -307,12 +316,23 @@ ${this.formatNewsForPrompt()}
         this.hasError = false
         this.executionLogs = []
         this.currentStepIndex = -1
+        this.newsData = null
+        this.isLoadingNews = false
+        this.newsError = null
+        this.aiRecommendations = null
+        this.isProcessingAI = false
+        this.aiError = null
+        this.userAIInput = ''
         this.progressSteps = this.progressSteps.map(step => ({
           ...step,
           completed: false,
           current: false,
-          error: false
+          error: false,
+          onClick: null
         }))
+        
+        // 添加重新开始的日志
+        this.addLog('重新开始执行流程', 'info')
       },
       
       // 添加日志
@@ -630,6 +650,13 @@ ${this.formatNewsForPrompt()}
           this.addLog(`保存失败: ${error.message}`, 'error')
           return false
         }
+      },
+
+      handleRestart() {
+        // 重置所有数据
+        this.resetProgress()
+        // 自动开始第一步
+        this.handleButtonClick()
       }
     }
   }
@@ -682,6 +709,11 @@ ${this.formatNewsForPrompt()}
     margin: 0;
     font-size: 16px;
     color: #333;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 12px;
   }
   
   .start-button {
@@ -919,5 +951,25 @@ ${this.formatNewsForPrompt()}
   
   .add-news-button:hover {
     background: #40a9ff;
+  }
+
+  .restart-button {
+    background: #52c41a;
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+  
+  .restart-button:hover {
+    background: #73d13d;
+  }
+  
+  .restart-button:disabled {
+    background: #d9d9d9;
+    cursor: not-allowed;
   }
   </style>
