@@ -1,9 +1,34 @@
 <template>
     <div class="stock-recommender">
-      <h2>股票推荐工具</h2>
+      <h2 class="main-title">股票推荐工具</h2>
       
       <!-- 进度条区域 -->
       <div class="progress-section">
+        <div class="progress-header">
+          <h3>执行进度</h3>
+          <button 
+            v-if="!isCompleted"
+            @click="handleButtonClick"
+            :disabled="isProcessing || isButtonDisabled"
+            class="start-button"
+          >
+            {{ getButtonText }}
+          </button>
+        </div>
+        
+        <!-- 添加新闻提示 -->
+        <div v-if="showAddNewsHint" class="add-news-hint">
+          <div class="hint-content">
+            <span>🔔 您可以在进行AI推荐之前添加自己关注的新闻</span>
+            <button 
+              @click="showAddNewsDialog"
+              class="add-news-button"
+            >
+              添加新闻
+            </button>
+          </div>
+        </div>
+
         <div class="progress-bar">
           <div 
             class="progress" 
@@ -33,13 +58,6 @@
       <div class="detail-section">
         <div class="detail-header">
           <h3>执行详情</h3>
-          <button 
-            v-if="!isProcessing" 
-            @click="startProcess"
-            :disabled="isCompleted"
-          >
-            {{ isCompleted ? '流程已完成' : '开始执行' }}
-          </button>
         </div>
   
         <!-- 详细信息日志 -->
@@ -98,6 +116,12 @@
         :loading="isLoadingNews"
         :error="newsError"
       />
+
+      <!-- 使用新的添加新闻对话框组件 -->
+      <AddNewsDialog
+        v-model="isAddNewsDialogVisible"
+        @submit="handleAddNews"
+      />
     </div>
   </template>
   
@@ -105,12 +129,16 @@
   import StockHistory from './StockHistory.vue'
   import NewsDialog from './NewsDialog.vue'
   import { fetchHotNews } from '@/utils/newsService.js'
+  import DraggableDialog from '@/components/DraggableDialog.vue'
+  import AddNewsDialog from './AddNewsDialog.vue'
   
   export default {
     name: 'StockRecommender',
     components: {
       StockHistory,
-      NewsDialog
+      NewsDialog,
+      DraggableDialog,
+      AddNewsDialog
     },
     data() {
       return {
@@ -119,9 +147,6 @@
         progressSteps: [
           { label: '爬取新闻', icon: '🔍', completed: false, current: false, error: false },
           { label: 'AI推荐', icon: '🤖', completed: false, current: false, error: false },
-          { label: '获取数据', icon: '📊', completed: false, current: false, error: false },
-          { label: 'AI分析', icon: '🧠', completed: false, current: false, error: false },
-          { label: '综合推荐', icon: '📈', completed: false, current: false, error: false },
           { label: '保存结果', icon: '💾', completed: false, current: false, error: false }
         ],
         
@@ -138,6 +163,8 @@
         newsData: null,
         isLoadingNews: false,
         newsError: null,
+        currentStepIndex: -1, // 添加当前步骤索引
+        isAddNewsDialogVisible: false
       }
     },
     
@@ -146,15 +173,61 @@
         return this.currentUserAction && 
                this.currentUserAction.value && 
                this.currentUserAction.value.trim().length > 0
+      },
+      
+      isButtonDisabled() {
+        if (this.currentStepIndex >= 0) {
+          const currentStep = this.progressSteps[this.currentStepIndex]
+          return !currentStep.completed
+        }
+        return false
+      },
+      
+      getButtonText() {
+        if (this.isCompleted) {
+          return '流程已完成'
+        }
+        if (this.currentStepIndex >= 0) {
+          const currentStep = this.progressSteps[this.currentStepIndex]
+          if (currentStep && currentStep.completed) {
+            return '下一步'
+          }
+          return '执行中...'
+        }
+        return '开始执行'
+      },
+      
+      showAddNewsHint() {
+        return this.currentStepIndex === 0 && 
+               this.progressSteps[0].completed &&
+               !this.isProcessing
       }
     },
     
     methods: {
-      // 开始执行流程
-      async startProcess() {
-        this.isProcessing = true
-        this.resetProgress()
-        await this.executeStep(0) // 从第一步开始执行
+      // 处理按钮点击
+      async handleButtonClick() {
+        if (this.isProcessing || this.isButtonDisabled) {
+          return
+        }
+        
+        if (this.currentStepIndex === -1) {
+          // 首次开始执行
+          this.isProcessing = true
+          this.resetProgress()
+          this.currentStepIndex = 0
+          await this.executeStep(0)
+          this.isProcessing = false
+        } else {
+          // 执行下一步
+          const nextStepIndex = this.currentStepIndex + 1
+          if (nextStepIndex < this.progressSteps.length) {
+            this.isProcessing = true
+            this.currentStepIndex = nextStepIndex
+            await this.executeStep(nextStepIndex)
+            this.isProcessing = false
+          }
+        }
       },
       
       // 重置进度
@@ -163,6 +236,7 @@
         this.isCompleted = false
         this.hasError = false
         this.executionLogs = []
+        this.currentStepIndex = -1
         this.progressSteps = this.progressSteps.map(step => ({
           ...step,
           completed: false,
@@ -204,10 +278,20 @@
             case 0: // 爬取新闻
               await this.executeNewsStep()
               break
-            // 其他步骤将在后续实现
+            case 1: // AI推荐
+              // await this.executeAIStep()
+              break
+            // ... 其他步骤
           }
           
           this.updateProgress(stepIndex, 'completed')
+          
+          // 检查是否所有步骤都完成
+          if (stepIndex === this.progressSteps.length - 1) {
+            this.isCompleted = true
+            this.isProcessing = false
+          }
+          
           return true
         } catch (error) {
           console.error(`步骤${stepIndex + 1}执行失败:`, error)
@@ -258,6 +342,18 @@
       
       showHistory() {
         this.$refs.historyDialog.show()
+      },
+      
+      showAddNewsDialog() {
+        this.isAddNewsDialogVisible = true
+      },
+      
+      handleAddNews(newsItem) {
+        // 添加到现有新闻列表
+        this.newsData = [...(this.newsData || []), newsItem]
+        
+        // 添加日志
+        this.addLog(`手动添加新闻: ${newsItem.title}`, 'success')
       }
     }
   }
@@ -270,6 +366,26 @@
     padding: 20px;
   }
   
+  .main-title {
+    text-align: center;
+    color: #1890ff;
+    font-size: 24px;
+    margin-bottom: 30px;
+    position: relative;
+  }
+  
+  .main-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: #1890ff;
+    border-radius: 2px;
+  }
+  
   /* 进度条区域样式 */
   .progress-section {
     margin: 30px 0;
@@ -277,6 +393,39 @@
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .progress-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .start-button {
+    background: #1890ff;
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+  
+  .start-button:hover {
+    background: #40a9ff;
+  }
+  
+  .start-button:disabled {
+    background: #d9d9d9;
+    cursor: not-allowed;
   }
   
   .progress-bar {
@@ -465,5 +614,34 @@
   .step.completed:hover .step-icon {
     transform: scale(1.1);
     transition: transform 0.3s;
+  }
+
+  .add-news-hint {
+    margin: 10px 0;
+    padding: 10px;
+    background: #e6f7ff;
+    border: 1px solid #91d5ff;
+    border-radius: 4px;
+  }
+  
+  .hint-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .add-news-button {
+    background: #1890ff;
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+  
+  .add-news-button:hover {
+    background: #40a9ff;
   }
   </style>
