@@ -9,10 +9,13 @@ import { supabase } from '@/utils/supabase.js'
 export async function saveStockRecommendation(newsData, recommendations) {
     try {
       // 准备要保存的数据
-      const record = {
-        news_data: newsData,
-        recommendations: recommendations,
-        created_at: new Date().toISOString()
+      const record = [];
+      for (let i = 0; i < newsData.length; i++) {
+        record.push({
+          news_context: newsData[i],
+          recommendations: recommendations[i],
+          created_at: new Date().toISOString()
+        })
       }
   
       const { data, error } = await supabase
