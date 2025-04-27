@@ -1,127 +1,406 @@
 <template>
   <DraggableDialog
-    v-model="visible"
-    title="热点新闻"
+    v-model="isVisible"
+    title="新闻列表"
+    :close-on-overlay-click="true"
     :initial-width="800"
     :initial-height="600"
-    :min-width="600"
-    :min-height="400"
   >
-    <div class="news-content">
-      <div v-if="loading" class="loading">
-        <p>正在获取新闻数据...</p>
+    <div class="news-dialog">
+      <!-- 添加新闻按钮 -->
+      <div class="dialog-header">
+        <button 
+          class="add-news-button"
+          @click="showAddNewsForm"
+        >
+          + 添加新闻
+        </button>
       </div>
-      <div v-else-if="error" class="error-message">
-        <p>{{ error }}</p>
-      </div>
-      <div v-else-if="newsData.length > 0" class="news-list">
-        <div v-for="(item, index) in newsData" :key="index" class="news-item">
-          <h4>{{ item.title }}</h4>
-          <p class="news-summary">{{ item.summary }}</p>
-          <div class="news-meta">
-            <span class="news-source">来源: {{ item.source }}</span>
-            <a :href="item.url" target="_blank" class="news-link">查看原文</a>
-          </div>
+
+      <!-- 新闻列表 -->
+      <div v-if="!isAddingNews" class="news-list">
+        <div v-if="loading" class="loading-state">
+          <p>加载中...</p>
         </div>
+        <div v-else-if="error" class="error-state">
+          <p>{{ error }}</p>
+          <button @click="$emit('retry')" class="retry-button">重试</button>
+        </div>
+        <template v-else>
+          <div 
+            v-for="(news, index) in newsData" 
+            :key="index"
+            class="news-item"
+          >
+            <h3 class="news-title">{{ news.title }}</h3>
+            <p class="news-summary">{{ news.summary }}</p>
+            <div class="news-meta">
+              <span class="news-source">来源：{{ news.source }}</span>
+              <span class="news-time">{{ formatTime(news.publishedAt) }}</span>
+            </div>
+            <a 
+              :href="news.url" 
+              target="_blank" 
+              class="news-link"
+            >
+              查看原文
+            </a>
+          </div>
+        </template>
       </div>
-      <div v-else class="no-data">
-        <p>暂无新闻数据</p>
+
+      <!-- 添加新闻表单 -->
+      <div v-else class="add-news-form">
+        <h3>添加新闻</h3>
+        <div class="form-item">
+          <label>
+            新闻标题
+            <span class="required">*</span>
+          </label>
+          <input 
+            v-model="newsForm.title"
+            type="text"
+            placeholder="请输入新闻标题"
+          >
+        </div>
+        <div class="form-item">
+          <label>新闻摘要</label>
+          <textarea
+            v-model="newsForm.summary"
+            placeholder="请输入新闻摘要（选填）"
+            rows="4"
+          ></textarea>
+        </div>
+        <div class="form-item">
+          <label>
+            新闻链接
+            <span class="required">*</span>
+          </label>
+          <input
+            v-model="newsForm.url"
+            type="text"
+            placeholder="请输入新闻链接"
+          >
+        </div>
+        <div class="form-item">
+          <label>新闻来源</label>
+          <input
+            v-model="newsForm.source"
+            type="text"
+            placeholder="请输入新闻来源（选填）"
+          >
+        </div>
+        <div class="form-actions">
+          <button 
+            @click="cancelAddNews"
+            class="cancel-button"
+          >
+            取消
+          </button>
+          <button 
+            @click="submitAddNews"
+            :disabled="!isFormValid"
+            class="submit-button"
+          >
+            确认添加
+          </button>
+        </div>
       </div>
     </div>
   </DraggableDialog>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script>
 import DraggableDialog from '@/components/DraggableDialog.vue'
 
-const props = defineProps({
-  newsData: {
-    type: Array,
-    required: true
+export default {
+  name: 'NewsDialog',
+  
+  components: {
+    DraggableDialog
   },
-  loading: {
-    type: Boolean,
-    default: false
+  
+  props: {
+    newsData: {
+      type: Array,
+      default: () => []
+    },
+    loading: {
+      type: Boolean,
+      default: false
+    },
+    error: {
+      type: String,
+      default: null
+    }
   },
-  error: {
-    type: String,
-    default: null
+  
+  emits: ['retry', 'add-news'],
+  
+  data() {
+    return {
+      isVisible: false,
+      isAddingNews: false,
+      newsForm: {
+        title: '',
+        summary: '',
+        url: '',
+        source: ''
+      }
+    }
+  },
+  
+  computed: {
+    isFormValid() {
+      const { title, url } = this.newsForm
+      return title.trim() && url.trim()
+    }
+  },
+  
+  methods: {
+    show() {
+      this.isVisible = true
+    },
+    
+    hide() {
+      this.isVisible = false
+      this.isAddingNews = false
+      this.resetForm()
+    },
+    
+    formatTime(timestamp) {
+      if (!timestamp) return ''
+      const date = new Date(timestamp)
+      return date.toLocaleString()
+    },
+    
+    showAddNewsForm() {
+      this.isAddingNews = true
+    },
+    
+    cancelAddNews() {
+      this.isAddingNews = false
+      this.resetForm()
+    },
+    
+    submitAddNews() {
+      if (!this.isFormValid) return
+      
+      const newsItem = {
+        ...this.newsForm,
+        // 如果摘要为空，使用标题作为摘要
+        summary: this.newsForm.summary.trim() || this.newsForm.title,
+        // 如果来源为空，使用"用户添加"
+        source: this.newsForm.source.trim() || '用户添加',
+        publishedAt: new Date().toISOString()
+      }
+      
+      this.$emit('add-news', newsItem)
+      this.isAddingNews = false
+      this.resetForm()
+    },
+    
+    resetForm() {
+      this.newsForm = {
+        title: '',
+        summary: '',
+        url: '',
+        source: ''
+      }
+    }
   }
-})
-
-const visible = ref(false)
-
-// 暴露方法给父组件
-defineExpose({
-  show: () => {
-    visible.value = true
-  }
-})
+}
 </script>
 
 <style scoped>
-.news-content {
+.news-dialog {
   height: 100%;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.loading, .error-message, .no-data {
-  text-align: center;
-  padding: 20px;
-  color: #666;
+.dialog-header {
+  padding: 0 0 16px 0;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.error-message {
-  background-color: #fff2f0;
-  border: 1px solid #ffccc7;
+.add-news-button {
+  background: #1890ff;
+  color: white;
+  border: none;
+  padding: 6px 16px;
   border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.add-news-button:hover {
+  background: #40a9ff;
 }
 
 .news-list {
-  height: 100%;
+  flex: 1;
   overflow-y: auto;
+  padding-right: 10px;
 }
 
 .news-item {
+  background: #f5f5f5;
+  border-radius: 8px;
   padding: 16px;
-  border-bottom: 1px solid #eee;
+  margin-bottom: 16px;
 }
 
-.news-item:last-child {
-  border-bottom: none;
-}
-
-.news-item h4 {
+.news-title {
   margin: 0 0 8px 0;
-  color: #333;
   font-size: 16px;
+  color: #333;
 }
 
 .news-summary {
-  color: #666;
   margin: 8px 0;
+  color: #666;
+  font-size: 14px;
   line-height: 1.5;
 }
 
 .news-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-top: 8px;
   font-size: 12px;
-}
-
-.news-source {
   color: #999;
 }
 
+.news-source {
+  margin-right: 16px;
+}
+
 .news-link {
+  display: inline-block;
+  margin-top: 8px;
   color: #1890ff;
   text-decoration: none;
+  font-size: 14px;
 }
 
 .news-link:hover {
-  color: #096dd9;
+  color: #40a9ff;
+}
+
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.retry-button {
+  background: #1890ff;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+/* 添加新闻表单样式 */
+.add-news-form {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.add-news-form h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.form-item {
+  margin-bottom: 20px;
+}
+
+.form-item label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 14px;
+}
+
+.required {
+  color: #ff4d4f;
+  margin-left: 4px;
+}
+
+.form-item input,
+.form-item textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.form-item input:hover,
+.form-item textarea:hover {
+  border-color: #40a9ff;
+}
+
+.form-item input:focus,
+.form-item textarea:focus {
+  border-color: #1890ff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.form-item textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-actions {
+  text-align: right;
+  margin-top: 24px;
+}
+
+.cancel-button {
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  color: rgba(0, 0, 0, 0.65);
+  margin-right: 12px;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.cancel-button:hover {
+  color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.submit-button {
+  background: #1890ff;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.submit-button:hover {
+  background: #40a9ff;
+}
+
+.submit-button:disabled {
+  background: #d9d9d9;
+  cursor: not-allowed;
 }
 </style> 
