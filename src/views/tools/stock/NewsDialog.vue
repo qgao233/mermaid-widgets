@@ -32,7 +32,15 @@
             :key="index"
             class="news-item"
           >
-            <h3 class="news-title">{{ news.title }}</h3>
+            <div class="news-header">
+              <h3 class="news-title">{{ news.title }}</h3>
+              <button 
+                class="delete-button"
+                @click="handleDelete(index)"
+              >
+                删除
+              </button>
+            </div>
             <p class="news-summary">{{ news.summary }}</p>
             <div class="news-meta">
               <span class="news-source">来源：{{ news.source }}</span>
@@ -135,7 +143,7 @@ export default {
     }
   },
   
-  emits: ['retry', 'add-news'],
+  emits: ['retry', 'add-news', 'delete-news'],
   
   data() {
     return {
@@ -200,6 +208,10 @@ export default {
       this.resetForm()
     },
     
+    handleDelete(index) {
+      this.$emit('delete-news', index)
+    },
+    
     resetForm() {
       this.newsForm = {
         title: '',
@@ -252,6 +264,12 @@ export default {
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
+}
+
+.news-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .news-title {
@@ -402,5 +420,20 @@ export default {
 .submit-button:disabled {
   background: #d9d9d9;
   cursor: not-allowed;
+}
+
+.delete-button {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.delete-button:hover {
+  background: #ff7875;
 }
 </style> 

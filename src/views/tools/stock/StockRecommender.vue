@@ -120,7 +120,7 @@
       </div>
       
       <!-- 使用新的历史记录组件 -->
-      <StockHistory ref="historyDialog" />
+      <StockHistoryDialog ref="historyDialog" />
       
       <!-- 使用新闻对话框组件 -->
       <NewsDialog 
@@ -129,29 +129,33 @@
         :loading="isLoadingNews"
         :error="newsError"
         @add-news="handleAddNews"
+        @delete-news="handleDeleteNews"
       />
 
       <!-- 使用AI推荐对话框组件 -->
       <AIRecommendDialog
         v-model="isAIRecommendDialogVisible"
         :recommendations="aiRecommendations"
+        :prompt-template="generatedPromptTemplate"
         :error="aiError"
         @submit="handleAddAIRecommendation"
+        @delete="handleDeleteRecommendation"
       />
     </div>
   </template>
   
   <script>
-  import StockHistory from './StockHistory.vue'
+  import StockHistoryDialog from './StockHistoryDialog.vue'
   import NewsDialog from './NewsDialog.vue'
   import { fetchHotNews } from '@/utils/newsService.js'
   import DraggableDialog from '@/components/DraggableDialog.vue'
   import AIRecommendDialog from './AIRecommendDialog.vue'
+  import { saveStockRecommendation } from '@/api/stockRecommendation.js'
   
   export default {
     name: 'StockRecommender',
     components: {
-      StockHistory,
+      StockHistoryDialog,
       NewsDialog,
       DraggableDialog,
       AIRecommendDialog
@@ -161,9 +165,24 @@
         // 进度相关
         currentProgress: 0,
         progressSteps: [
-          { label: '爬取新闻', icon: '🔍', completed: false, current: false, error: false },
-          { label: 'AI推荐', icon: '🤖', completed: false, current: false, error: false },
-          { label: '保存结果', icon: '💾', completed: false, current: false, error: false }
+          {
+            label: '爬取热点新闻',
+            status: 'pending',
+            icon: '🔍',
+            onClick: null
+          },
+          {
+            label: 'AI分析推荐',
+            status: 'pending',
+            icon: '🤖',
+            onClick: null
+          },
+          {
+            label: '保存分析结果',
+            status: 'pending',
+            icon: '💾',
+            onClick: null
+          }
         ],
         
         // 执行状态
@@ -185,19 +204,7 @@
         isProcessingAI: false,
         aiError: null,
         userAIInput: '',
-        promptTemplate: `请根据以下新闻分析可能相关的股票：
-1. 分析每条新闻提到的公司和行业
-2. 找出相关的股票代码（优先A股，同时可以包含港股和美股）
-3. 给出推荐理由
-4. 使用以下格式返回结果：
-{
-  "stockCode": "股票代码",
-  "stockName": "股票名称",
-  "market": "市场（A股/港股/美股）",
-  "reason": "推荐理由",
-  "relatedNews": ["相关新闻标题1", "相关新闻标题2"],
-  "confidence": 推荐置信度(0-100)
-}`
+        promptTemplate: '', // 移除原有的固定模板
       }
     },
     
@@ -240,6 +247,30 @@
         return this.currentStepIndex === 1 && 
                this.progressSteps[1].completed &&
                !this.isProcessing
+      },
+
+      // 添加计算属性来动态生成提示词模板
+      generatedPromptTemplate() {
+        let template = `请分析以下新闻，找出可能相关的股票：
+
+当前新闻列表：
+${this.formatNewsForPrompt()}
+
+请根据以上新闻：
+1. 分析每条新闻提到的公司和行业
+2. 找出相关的股票代码（优先A股，同时可以包含港股和美股）
+3. 给出推荐理由
+4. 使用以下格式返回结果：
+{
+  "stockCode": "股票代码",
+  "stockName": "股票名称",
+  "market": "市场（A股/港股/美股）",
+  "reason": "推荐理由",
+  "relatedNews": ["相关新闻标题1", "相关新闻标题2"],
+  "confidence": 推荐置信度(0-100)
+}`
+
+        return template
       }
     },
     
@@ -313,25 +344,36 @@
         this.addLog(`开始执行第${stepIndex + 1}步: ${this.progressSteps[stepIndex].label}`)
         
         try {
+          let success = false
+          
           switch (stepIndex) {
             case 0: // 爬取新闻
-              await this.executeNewsStep()
+              success = await this.executeNewsStep()
               break
             case 1: // AI推荐
-              await this.executeAIStep()
+              success = await this.executeAIStep()
               break
-            // ... 其他步骤
+            case 2: // 保存结果
+              success = await this.executeSaveStep()
+              break
           }
           
-          this.updateProgress(stepIndex, 'completed')
-          
-          // 检查是否所有步骤都完成
-          if (stepIndex === this.progressSteps.length - 1) {
-            this.isCompleted = true
-            this.isProcessing = false
+          if (success) {
+            this.updateProgress(stepIndex, 'completed')
+            
+            // 检查是否所有步骤都完成
+            if (stepIndex === this.progressSteps.length - 1) {
+              this.isCompleted = true
+              this.isProcessing = false
+              this.addLog('🎉 所有步骤已完成！', 'success')
+            }
+            
+            return true
+          } else {
+            this.updateProgress(stepIndex, 'error')
+            this.hasError = true
+            return false
           }
-          
-          return true
         } catch (error) {
           console.error(`步骤${stepIndex + 1}执行失败:`, error)
           this.addLog(`步骤执行失败: ${error.message}`, 'error')
@@ -348,14 +390,22 @@
         this.newsError = null
         
         try {
-          
           // 使用日志回调获取新闻
           const results = await fetchHotNews((log) => {
             this.addLog(log.message, log.type)
           })
           
           if (!results || results.length === 0) {
-            throw new Error('未获取到任何新闻数据')
+            this.addLog('自动获取新闻失败，您可以手动添加新闻继续', 'info')
+            // 初始化空数组以允许手动添加
+            this.newsData = []
+            // 将进度步骤设置为可点击
+            this.progressSteps[0].onClick = () => {
+              this.$refs.newsDialog.show()
+            }
+            // 显示添加新闻提示
+            this.addLog('💡 提示：点击"添加新闻"按钮来手动添加新闻', 'info')
+            return true // 允许流程继续
           }
           
           this.newsData = results
@@ -368,7 +418,16 @@
           return true
         } catch (error) {
           this.newsError = error.message
-          throw new Error(`爬取新闻失败: ${error.message}`)
+          this.addLog(`自动获取新闻失败: ${error.message}，您可以手动添加新闻继续`, 'error')
+          // 初始化空数组以允许手动添加
+          this.newsData = []
+          // 将进度步骤设置为可点击
+          this.progressSteps[0].onClick = () => {
+            this.$refs.newsDialog.show()
+          }
+          // 显示添加新闻提示
+          this.addLog('💡 提示：点击"添加新闻"按钮来手动添加新闻', 'info')
+          return true // 允许流程继续
         } finally {
           this.isLoadingNews = false
         }
@@ -382,6 +441,7 @@
         
         try {
           if (!this.newsData || this.newsData.length === 0) {
+            this.addLog('没有可分析的新闻数据，请先添加新闻', 'error')
             throw new Error('没有可分析的新闻数据')
           }
           
@@ -392,12 +452,21 @@
             source: news.source
           }))
           
-          // 调用百度搜索API获取相关股票信息
+          // 调用搜索API获取相关股票信息
           this.addLog('正在搜索相关股票信息...')
           const recommendations = await this.searchStocksByNews(newsForAnalysis)
           
           if (!recommendations || recommendations.length === 0) {
-            throw new Error('未找到相关股票信息')
+            this.addLog('自动分析未找到相关股票，您可以手动添加推荐继续', 'info')
+            // 初始化空数组以允许手动添加
+            this.aiRecommendations = []
+            // 将进度步骤设置为可点击
+            this.progressSteps[1].onClick = () => {
+              this.showAIRecommendDialog()
+            }
+            // 显示添加推荐提示
+            this.addLog('💡 提示：点击"添加推荐"按钮来手动添加股票推荐', 'info')
+            return true // 允许流程继续
           }
           
           this.aiRecommendations = recommendations
@@ -414,7 +483,20 @@
           return true
         } catch (error) {
           this.aiError = error.message
-          throw new Error(`AI分析失败: ${error.message}`)
+          if (error.message === '没有可分析的新闻数据') {
+            return false // 需要用户先添加新闻
+          }
+          
+          this.addLog(`AI分析失败: ${error.message}，您可以手动添加推荐继续`, 'error')
+          // 初始化空数组以允许手动添加
+          this.aiRecommendations = []
+          // 将进度步骤设置为可点击
+          this.progressSteps[1].onClick = () => {
+            this.showAIRecommendDialog()
+          }
+          // 显示添加推荐提示
+          this.addLog('💡 提示：点击"添加推荐"按钮来手动添加股票推荐', 'info')
+          return true // 允许流程继续
         } finally {
           this.isProcessingAI = false
         }
@@ -429,27 +511,23 @@
           // 模拟API调用延迟
           await new Promise(resolve => setTimeout(resolve, 1000))
           
-          if (news.title.includes('科技') || news.summary.includes('科技')) {
-            mockRecommendations.push({
-              stockCode: '000001',
-              stockName: '平安银行',
-              market: 'A股',
-              reason: `与新闻"${news.title}"相关，涉及金融科技领域`,
-              relatedNews: [news.title],
-              confidence: 85
-            })
-          }
-          
-          if (news.title.includes('新能源') || news.summary.includes('新能源')) {
-            mockRecommendations.push({
-              stockCode: '300750',
-              stockName: '宁德时代',
-              market: 'A股',
-              reason: `与新闻"${news.title}"相关，新能源电池龙头企业`,
-              relatedNews: [news.title],
-              confidence: 90
-            })
-          }
+          mockRecommendations.push({
+            stockCode: '000001',
+            stockName: '平安银行',
+            market: 'A股',
+            reason: `与新闻"${news.title}"相关，涉及金融科技领域`,
+            relatedNews: [news.title],
+            confidence: 85
+          })
+        
+          mockRecommendations.push({
+            stockCode: '300750',
+            stockName: '宁德时代',
+            market: 'A股',
+            reason: `与新闻"${news.title}"相关，新能源电池龙头企业`,
+            relatedNews: [news.title],
+            confidence: 90
+          })
         }
         
         return mockRecommendations
@@ -495,6 +573,63 @@
         
         // 添加日志
         this.addLog(`手动添加新闻: ${newsItem.title}`, 'success')
+      },
+
+      // 处理删除新闻
+      handleDeleteNews(index) {
+        const deletedNews = this.newsData[index]
+        this.newsData = this.newsData.filter((_, i) => i !== index)
+        this.addLog(`删除新闻: ${deletedNews.title}`, 'info')
+      },
+      
+      // 处理删除推荐
+      handleDeleteRecommendation(index) {
+        const deletedRecommendation = this.aiRecommendations[index]
+        this.aiRecommendations = this.aiRecommendations.filter((_, i) => i !== index)
+        this.addLog(`删除推荐: ${deletedRecommendation.stockName}(${deletedRecommendation.stockCode})`, 'info')
+      },
+
+      // 格式化新闻数据用于提示词
+      formatNewsForPrompt() {
+        if (!this.newsData || this.newsData.length === 0) {
+          return '暂无新闻数据'
+        }
+
+        return this.newsData.map((news, index) => {
+          return `${index + 1}. ${news.title}
+        来源：${news.source}
+        摘要：${news.summary}`
+        }).join('\n\n')
+      },
+
+      // 执行保存结果步骤
+      async executeSaveStep() {
+        this.addLog('开始保存分析结果...')
+        
+        try {
+          if (!this.newsData || !this.aiRecommendations) {
+            this.addLog('没有可保存的数据，请确保已完成新闻获取和AI推荐步骤', 'error')
+            throw new Error('没有可保存的数据')
+          }
+
+          // 保存到Supabase
+          this.addLog('正在保存到数据库...')
+          const savedData = await saveStockRecommendation(this.newsData, this.aiRecommendations)
+          
+          if (savedData) {
+            this.addLog('数据保存成功！', 'success')
+            // 将进度步骤设置为可点击，点击时显示历史记录
+            this.progressSteps[2].onClick = () => {
+              this.showHistory()
+            }
+            return true
+          } else {
+            throw new Error('保存失败')
+          }
+        } catch (error) {
+          this.addLog(`保存失败: ${error.message}`, 'error')
+          return false
+        }
       }
     }
   }

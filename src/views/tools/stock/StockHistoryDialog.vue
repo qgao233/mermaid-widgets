@@ -57,7 +57,7 @@
 <script setup>
 import { ref } from 'vue'
 import DraggableDialog from '@/components/DraggableDialog.vue'
-import { supabase } from '@/utils/supabase.js'
+import { getStockRecommendationHistory } from '@/api/stockRecommendation.js'
 
 const visible = ref(false)
 const loading = ref(false)
@@ -66,15 +66,7 @@ const history = ref([])
 const loadRecommendationHistory = async () => {
   loading.value = true
   try {
-    const { data, error } = await supabase
-      .from('stock_recommendations')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      console.error('获取推荐历史失败:', error)
-      return
-    }
+    const data = await getStockRecommendationHistory()
     
     history.value = data || []
   } catch (error) {
