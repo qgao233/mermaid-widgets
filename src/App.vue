@@ -39,7 +39,11 @@
               </router-link>
               <router-link to="/tools/chat/chat" class="dropdown-item">
                 <span class="item-icon">💬</span>
-                <span>实时聊天</span>
+                <span>实时聊天室</span>
+              </router-link>
+              <router-link to="/tools/stock/stock-recommender" class="dropdown-item">
+                <span class="item-icon">📈</span>
+                <span>股票推荐</span>
               </router-link>
             </div>
           </div>
@@ -118,6 +122,14 @@
             <router-link to="/tools/video-parser" class="mobile-dropdown-item" @click="mobileMenuOpen = false">
               <span class="item-icon">🎬</span>
               <span>视频解析</span>
+            </router-link>
+            <router-link to="/tools/chat/chat" class="mobile-dropdown-item" @click="mobileMenuOpen = false">
+              <span class="item-icon">💬</span>
+              <span>实时聊天室</span>
+            </router-link>
+            <router-link to="/tools/stock/stock-recommender" class="mobile-dropdown-item" @click="mobileMenuOpen = false">
+              <span class="item-icon">📈</span>
+              <span>股票推荐</span>
             </router-link>
           </div>
         </div>
@@ -395,12 +407,13 @@ body {
   top: 100%;
   left: 0;
   min-width: 200px;
+  max-height: 400px;
+  overflow-y: auto;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
   margin-top: 10px;
   z-index: 10;
-  overflow: hidden;
   transform-origin: top;
   animation: dropdown 0.2s ease;
 }
@@ -414,6 +427,24 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .dropdown-item {

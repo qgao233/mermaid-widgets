@@ -88,7 +88,40 @@
         </div>
         
         <div class="form-item">
-          <label>将AI助手的回答粘贴到下面：</label>
+          <label>将第三方AI助手的回答粘贴到下面：</label>
+          <div class="input-example">
+            <p>支持单个推荐对象或多个推荐对象的数组，例如：</p>
+            <pre class="example-code">
+// 单个推荐对象
+{
+  "stockCode": "000001",
+  "stockName": "平安银行",
+  "market": "A股",
+  "reason": "金融科技转型成效显著",
+  "relatedNews": ["相关新闻标题1", "相关新闻标题2"],
+  "confidence": 85
+}
+
+// 或多个推荐对象的数组
+[
+  {
+    "stockCode": "000001",
+    "stockName": "平安银行",
+    "market": "A股",
+    "reason": "金融科技转型成效显著",
+    "relatedNews": ["相关新闻标题1"],
+    "confidence": 85
+  },
+  {
+    "stockCode": "600036",
+    "stockName": "招商银行",
+    "market": "A股",
+    "reason": "零售银行业务优势明显",
+    "relatedNews": ["相关新闻标题2"],
+    "confidence": 90
+  }
+]</pre>
+          </div>
           <textarea
             v-model="userInput"
             placeholder="请粘贴AI助手的JSON格式回答..."
@@ -138,9 +171,9 @@ export default {
       type: Array,
       default: () => []
     },
-    promptTemplate: {
-      type: String,
-      required: true
+    newsData: {
+      type: Array,
+      default: () => []
     },
     error: {
       type: String,
@@ -160,7 +193,58 @@ export default {
     }
   },
   
+  computed: {
+    promptTemplate() {
+      return `请分析以下新闻，找出可能相关的股票：
+
+当前新闻列表：
+${this.formatNewsForPrompt()}
+
+请根据以上新闻：
+1. 分析每条新闻提到的公司和行业
+2. 找出相关的股票代码（优先A股，同时可以包含港股和美股）
+3. 给出推荐理由
+4. 使用以下JSON格式返回结果，可以返回单个对象或对象数组：
+
+[
+  {
+    "stockCode": "股票代码",
+    "stockName": "股票名称",
+    "market": "市场（A股/港股/美股）",
+    "reason": "推荐理由（包含对公司优势和相关新闻分析的详细说明）",
+    "relatedNews": ["相关新闻标题1", "相关新闻标题2"],
+    "confidence": 推荐置信度(0-100)
+  },
+  // 可以返回多个推荐...
+]
+
+注意事项：
+1. 每个推荐都需要包含完整的字段信息
+2. confidence 值范围为0-100
+3. 确保返回格式为标准JSON，可以被JSON.parse()直接解析
+4. 可以返回单个对象或对象数组，但格式必须正确`
+    },
+
+    // 格式化新闻数据用于提示词
+    formattedNews() {
+      if (!this.newsData || this.newsData.length === 0) {
+        return '暂无新闻数据'
+      }
+
+      return this.newsData.map((news, index) => {
+        return `${index + 1}. ${news.title}
+          来源：${news.source}
+          摘要：${news.summary}`
+      }).join('\n\n')
+    },
+  },
+  
   methods: {
+    // 格式化新闻数据用于提示词模板
+    formatNewsForPrompt() {
+      return this.formattedNews
+    },
+    
     getConfidenceClass(confidence) {
       if (confidence >= 80) return 'high'
       if (confidence >= 60) return 'medium'
@@ -198,22 +282,31 @@ export default {
       this.inputError = ''
       
       try {
-        const recommendation = JSON.parse(this.userInput)
+        let recommendations = JSON.parse(this.userInput)
+        
+        // 如果不是数组，转换为数组
+        if (!Array.isArray(recommendations)) {
+          recommendations = [recommendations]
+        }
         
         const requiredFields = ['stockCode', 'stockName', 'market', 'reason', 'relatedNews', 'confidence']
-        const missingFields = requiredFields.filter(field => !(field in recommendation))
         
-        if (missingFields.length > 0) {
-          this.inputError = `缺少必要字段: ${missingFields.join(', ')}`
-          return
+        // 验证每个推荐对象
+        for (const recommendation of recommendations) {
+          const missingFields = requiredFields.filter(field => !(field in recommendation))
+          
+          if (missingFields.length > 0) {
+            this.inputError = `推荐对象缺少必要字段: ${missingFields.join(', ')}`
+            return
+          }
+          
+          if (recommendation.confidence < 0 || recommendation.confidence > 100) {
+            this.inputError = '置信度必须在0-100之间'
+            return
+          }
         }
         
-        if (recommendation.confidence < 0 || recommendation.confidence > 100) {
-          this.inputError = '置信度必须在0-100之间'
-          return
-        }
-        
-        this.$emit('submit', recommendation)
+        this.$emit('submit', recommendations)
         this.userInput = ''
         this.inputError = ''
         this.isAddingRecommend = false
@@ -509,5 +602,35 @@ export default {
 
 .delete-button:hover {
   background: #ff7875;
+}
+
+.input-example {
+  margin: 8px 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.example-code {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 8px 0;
+  font-family: monospace;
+  white-space: pre;
+  overflow-x: auto;
+  border: 1px solid #e8e8e8;
+}
+
+.example-code::-webkit-scrollbar {
+  height: 6px;
+}
+
+.example-code::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}
+
+.example-code::-webkit-scrollbar-track {
+  background-color: #f5f5f5;
 }
 </style> 

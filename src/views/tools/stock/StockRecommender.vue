@@ -145,7 +145,7 @@
       <AIRecommendDialog
         v-model="isAIRecommendDialogVisible"
         :recommendations="aiRecommendations"
-        :prompt-template="generatedPromptTemplate"
+        :news-data="newsData"
         :error="aiError"
         @submit="handleAddAIRecommendation"
         @delete="handleDeleteRecommendation"
@@ -160,7 +160,8 @@
   import DraggableDialog from '@/components/DraggableDialog.vue'
   import AIRecommendDialog from './AIRecommendDialog.vue'
   import { saveStockRecommendation } from '@/api/stockRecommendation.js'
-  
+  import { generateId } from '@/utils/tools'
+
   export default {
     name: 'StockRecommender',
     components: {
@@ -213,7 +214,6 @@
         isProcessingAI: false,
         aiError: null,
         userAIInput: '',
-        promptTemplate: '', // 移除原有的固定模板
       }
     },
     
@@ -257,30 +257,6 @@
                this.progressSteps[1].completed &&
                !this.isProcessing
       },
-
-      // 添加计算属性来动态生成提示词模板
-      generatedPromptTemplate() {
-        let template = `请分析以下新闻，找出可能相关的股票：
-
-当前新闻列表：
-${this.formatNewsForPrompt()}
-
-请根据以上新闻：
-1. 分析每条新闻提到的公司和行业
-2. 找出相关的股票代码（优先A股，同时可以包含港股和美股）
-3. 给出推荐理由
-4. 使用以下格式返回结果：
-{
-  "stockCode": "股票代码",
-  "stockName": "股票名称",
-  "market": "市场（A股/港股/美股）",
-  "reason": "推荐理由",
-  "relatedNews": ["相关新闻标题1", "相关新闻标题2"],
-  "confidence": 推荐置信度(0-100)
-}`
-
-        return template
-      }
     },
     
     methods: {
@@ -429,6 +405,15 @@ ${this.formatNewsForPrompt()}
           }
           
           this.newsData = results
+          // // 生成一条假新闻数据用于测试
+          // this.newsData = [{
+          //   id: generateId(),
+          //   title: '市场分析：科技股持续走强，投资者关注AI领域发展',
+          //   summary: '近日，科技股表现强劲，特别是人工智能相关企业股价大幅上涨。分析师认为，随着AI技术在各行业的应用不断深入，相关企业将持续受益。投资者应密切关注该领域的最新发展动态。',
+          //   url: 'https://example.com/tech-stocks-news',
+          //   source: '财经日报',
+          //   publishedAt: new Date().toISOString()
+          // }]
           
           // 将进度步骤设置为可点击
           this.progressSteps[0].onClick = () => {
@@ -465,16 +450,10 @@ ${this.formatNewsForPrompt()}
             throw new Error('没有可分析的新闻数据')
           }
           
-          // 准备新闻数据
-          const newsForAnalysis = this.newsData.map(news => ({
-            title: news.title,
-            summary: news.summary,
-            source: news.source
-          }))
           
           // 调用搜索API获取相关股票信息
           this.addLog('正在搜索相关股票信息...')
-          const recommendations = await this.searchStocksByNews(newsForAnalysis)
+          const recommendations = await this.searchStocksByNews()
           
           if (!recommendations || recommendations.length === 0) {
             this.addLog('自动分析未找到相关股票，您可以手动添加推荐继续', 'info')
@@ -523,13 +502,12 @@ ${this.formatNewsForPrompt()}
       },
       
       // 根据新闻搜索相关股票
-      async searchStocksByNews(newsData) {
+      async searchStocksByNews() {
         // 这里是模拟的搜索结果，实际项目中需要调用真实的搜索API
         const mockRecommendations = []
         
-        for (const news of newsData) {
+        for (const news of this.newsData) {
           // 模拟API调用延迟
-          await new Promise(resolve => setTimeout(resolve, 1000))
           
           mockRecommendations.push({
             stockCode: '000001',
@@ -537,7 +515,8 @@ ${this.formatNewsForPrompt()}
             market: 'A股',
             reason: `与新闻"${news.title}"相关，涉及金融科技领域`,
             relatedNews: [news.title],
-            confidence: 85
+            confidence: 85,
+            newsId: news.id
           })
         
           mockRecommendations.push({
@@ -546,7 +525,8 @@ ${this.formatNewsForPrompt()}
             market: 'A股',
             reason: `与新闻"${news.title}"相关，新能源电池龙头企业`,
             relatedNews: [news.title],
-            confidence: 90
+            confidence: 90,
+            newsId: news.id
           })
         }
         
@@ -607,19 +587,6 @@ ${this.formatNewsForPrompt()}
         const deletedRecommendation = this.aiRecommendations[index]
         this.aiRecommendations = this.aiRecommendations.filter((_, i) => i !== index)
         this.addLog(`删除推荐: ${deletedRecommendation.stockName}(${deletedRecommendation.stockCode})`, 'info')
-      },
-
-      // 格式化新闻数据用于提示词
-      formatNewsForPrompt() {
-        if (!this.newsData || this.newsData.length === 0) {
-          return '暂无新闻数据'
-        }
-
-        return this.newsData.map((news, index) => {
-          return `${index + 1}. ${news.title}
-        来源：${news.source}
-        摘要：${news.summary}`
-        }).join('\n\n')
       },
 
       // 执行保存结果步骤
