@@ -1,3 +1,5 @@
+import { generateId } from '@/utils/tools'
+
 /**
  * 新闻爬虫服务，用于获取各大搜索引擎的时事热点新闻
  */
@@ -193,6 +195,7 @@ async function fetchGoogleFinanceNews(logCallback) {
         const description = item.querySelector('description')?.textContent || ''
         
         newsItems.push({
+          id: generateId(),
           title,
           summary: description.substring(0, 150) + '...',
           url: link,
@@ -229,6 +232,7 @@ async function fetchBingFinanceNews(logCallback) {
         const description = item.querySelector('description')?.textContent || ''
         
         newsItems.push({
+          id: generateId(),
           title,
           summary: description.replace(/<[^>]*>/g, '').substring(0, 150) + '...',
           url: link,
@@ -267,6 +271,7 @@ async function fetchBaiduFinanceNews(logCallback) {
       const summary = element.querySelector('.article-summary')?.textContent?.trim() || ''
       
       newsItems.push({
+        id: generateId(),
         title,
         summary: summary.substring(0, 150) + '...',
         url: link,
@@ -303,6 +308,7 @@ async function fetchSinaFinanceNews(logCallback) {
       const link = linkElement?.getAttribute('href') || ''
       
       newsItems.push({
+        id: generateId(),
         title,
         summary: '新浪财经热点新闻',
         url: link,
@@ -339,6 +345,7 @@ async function fetchEastMoneyNews(logCallback) {
       const link = linkElement?.getAttribute('href') || ''
       
       newsItems.push({
+        id: generateId(),
         title,
         summary: '东方财富网热点新闻',
         url: link,
@@ -375,6 +382,7 @@ async function fetchTencentFinanceNews(logCallback) {
       const link = linkElement?.getAttribute('href') || ''
       
       newsItems.push({
+        id: generateId(),
         title,
         summary: '腾讯财经热点新闻',
         url: link,

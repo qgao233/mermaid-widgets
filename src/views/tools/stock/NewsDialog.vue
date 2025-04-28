@@ -120,6 +120,7 @@
 
 <script>
 import DraggableDialog from '@/components/DraggableDialog.vue'
+import { generateId } from '@/utils/tools'
 
 export default {
   name: 'NewsDialog',
@@ -191,10 +192,12 @@ export default {
       this.resetForm()
     },
     
+    
     submitAddNews() {
       if (!this.isFormValid) return
       
       const newsItem = {
+        id: generateId(),
         ...this.newsForm,
         // 如果摘要为空，使用标题作为摘要
         summary: this.newsForm.summary.trim() || this.newsForm.title,

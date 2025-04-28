@@ -44,20 +44,26 @@
               </td>
               <td>{{ item.recommendation.reason }}</td>
               <td class="news-cell">
-                <div class="news-item">
-                  <div class="news-title">{{ item.news_context.title }}</div>
-                  <div class="news-meta">
-                    <span class="news-source">{{ item.news_context.source }}</span>
-                    <span class="news-time">{{ formatDate(item.news_context.publishedAt) }}</span>
+                <div class="news-item" :class="{ 'expanded': expandedNews[index] }">
+                  <div class="news-header" @click="toggleNews(index)">
+                    <div class="news-title">{{ item.news_context.title }}</div>
+                    <span class="expand-icon">{{ expandedNews[index] ? '▼' : '▶' }}</span>
                   </div>
-                  <div class="news-summary">{{ item.news_context.summary }}</div>
-                  <a 
-                    :href="item.news_context.url" 
-                    target="_blank" 
-                    class="news-link"
-                  >
-                    查看原文
-                  </a>
+                  <div class="news-details" v-show="expandedNews[index]">
+                    <div class="news-meta">
+                      <span class="news-source">{{ item.news_context.source }}</span>
+                      <span class="news-time">{{ formatDate(item.news_context.publishedAt) }}</span>
+                    </div>
+                    <div class="news-summary">{{ item.news_context.summary }}</div>
+                    <a 
+                      :href="item.news_context.url" 
+                      target="_blank" 
+                      class="news-link"
+                      @click.stop
+                    >
+                      查看原文
+                    </a>
+                  </div>
                 </div>
               </td>
             </tr>
@@ -79,6 +85,7 @@ import { getStockRecommendationHistory } from '@/api/stockRecommendation.js'
 const visible = ref(false)
 const loading = ref(false)
 const history = ref([])
+const expandedNews = ref({})  // 新增：用于跟踪每条新闻的展开状态
 
 // 将历史记录展开成扁平结构
 const flattenedHistory = computed(() => {
@@ -86,8 +93,8 @@ const flattenedHistory = computed(() => {
   history.value.forEach(item => {
     flattened.push({
       created_at: item.created_at,
-      recommendation: item.recommendations,
-      news_context: item.news_context
+      recommendation: JSON.parse(item.recommendations),
+      news_context: JSON.parse(item.news_context)
     })
   })
   return flattened
@@ -114,6 +121,10 @@ const loadRecommendationHistory = async () => {
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleString('zh-CN')
+}
+
+const toggleNews = (index) => {
+  expandedNews.value[index] = !expandedNews.value[index]
 }
 
 // 暴露方法给父组件
@@ -209,29 +220,51 @@ table th {
 }
 
 .news-cell {
-  max-width: 400px;
+  max-width: 300px;
 }
 
 .news-item {
-  padding: 8px;
   background: #f5f5f5;
   border-radius: 4px;
-  margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 
-.news-item:last-child {
-  margin-bottom: 0;
+.news-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.news-header:hover {
+  background: #e8e8e8;
 }
 
 .news-title {
   font-weight: 500;
-  margin-bottom: 4px;
+  flex: 1;
+  margin-right: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expand-icon {
+  color: #666;
+  font-size: 12px;
+}
+
+.news-details {
+  padding: 0 12px 12px;
+  border-top: 1px solid #e8e8e8;
 }
 
 .news-meta {
   font-size: 12px;
   color: #666;
-  margin-bottom: 4px;
+  margin: 8px 0;
 }
 
 .news-source {
@@ -242,11 +275,11 @@ table th {
   font-size: 12px;
   color: #666;
   line-height: 1.5;
+  margin-bottom: 8px;
 }
 
 .news-link {
   display: inline-block;
-  margin-top: 8px;
   color: #1890ff;
   text-decoration: none;
   font-size: 12px;
