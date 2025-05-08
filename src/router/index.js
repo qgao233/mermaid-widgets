@@ -10,6 +10,7 @@ import Chat from '../views/tools/chat/Chat.vue'
 import PrivateChat from '../views/tools/chat/PrivateChat.vue'
 import StockRecommender from '../views/tools/stock/StockRecommender.vue'
 import AuthCallback from '../views/AuthCallback.vue'
+import FitnessPlan from '../views/FitnessPlan.vue'
 
 const routes = [
   {
@@ -66,6 +67,11 @@ const routes = [
     path: '/auth/callback',
     name: 'AuthCallback',
     component: AuthCallback
+  },
+  {
+    path: '/fitness-plan',
+    name: 'FitnessPlan',
+    component: FitnessPlan
   }
 ]
 
