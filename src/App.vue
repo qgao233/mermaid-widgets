@@ -83,6 +83,10 @@
           </div>
           
           <router-link to="/about" class="nav-item">关于</router-link>
+          <router-link to="/fitness-plan" class="dropdown-item">
+            <span class="item-icon">💪</span>
+            <span>健身计划</span>
+          </router-link>
         </nav>
         
         <button class="mobile-menu-toggle" @click="mobileMenuOpen = !mobileMenuOpen">
@@ -165,6 +169,10 @@
         </div>
         
         <router-link to="/about" class="mobile-nav-item" @click="mobileMenuOpen = false">关于</router-link>
+        <router-link to="/fitness-plan" class="dropdown-item">
+            <span class="item-icon">💪</span>
+            <span>健身计划</span>
+          </router-link>
       </div>
     </div>
     
