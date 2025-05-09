@@ -27,7 +27,11 @@
             <div v-for="(day, index) in weekData.activities" 
                  :key="index"
                  class="calendar-cell day"
-                 :class="{ 'completed': day.is_completed }">
+                 :class="{ 
+                   'completed': day.is_completed,
+                   'current-day': isCurrentDay(day.activity_date),
+                   'past-day': isPastDay(day.activity_date)
+                 }">
               <div class="day-header">
                 <span class="date">{{ formatDayDate(day.activity_date) }}</span>
                 <span class="weekday">{{ getWeekDay(day.activity_date) }}</span>
@@ -156,6 +160,21 @@ const updateActivity = async (activityId, isCompleted) => {
     console.error('更新活动状态失败:', error)
   }
 }
+
+const isCurrentDay = (dateString) => {
+  const today = new Date()
+  const [year, month, day] = dateString.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  return date.toDateString() === today.toDateString()
+}
+
+const isPastDay = (dateString) => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const [year, month, day] = dateString.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  return date < today
+}
 </script>
 
 <style scoped>
@@ -239,7 +258,7 @@ const updateActivity = async (activityId, isCompleted) => {
 .week-calendar {
   background: #f8f9fa;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .calendar-body {
@@ -258,6 +277,26 @@ const updateActivity = async (activityId, isCompleted) => {
 
 .calendar-cell.day.completed {
   background: #f0f9eb;
+}
+
+.calendar-cell.day.current-day {
+  background: #e6f7ff;
+  border-top: 3px solid #1890ff;
+  box-shadow: 0 0 10px rgba(24, 144, 255, 0.2);
+}
+
+.calendar-cell.day.past-day {
+  background: #f5f5f5;
+  opacity: 0.8;
+  border-top: 3px solid #d9d9d9;
+}
+
+.calendar-cell.day.past-day .activity-item {
+  background: #fafafa;
+}
+
+.calendar-cell.day.current-day .day-header .date {
+  color: #1890ff;
 }
 
 .day-header {
